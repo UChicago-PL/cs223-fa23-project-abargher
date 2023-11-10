@@ -5,7 +5,8 @@ by Alec Bargher & Victor Brown
 
 TLDR: We are going to take up Professor Chugh's suggestion of making our project
 based off of Interstellar. To do this, we are going to use random functions and
-distance parameters to draw stars that are of a specific density.
+distance parameters to draw a galaxy-like image with randomly generated stars
+of varying density
 
 Topics relevant to the course include:
 - Image Generation

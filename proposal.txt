@@ -37,3 +37,13 @@ THE Victor Brown). Fortunately, you do have Haskell, and all of the advantages t
 gives us! Armed with a computer, you set out to draw the image to capture your dreams. Who needs the
 stars to align when you've got... Stars of Chance.
 
+The core of our star generation is picking where the centers of each star lie.
+One method for picking these centers is to choose a fixed number of stars we
+want to generate as well as a fixed minimum distance between all stars. Then,
+we randomly generate an (x,y) position within the bounds of the desired image
+size, and add it to a list of centers. If the randomly chosen position is not
+at least the minimum distance away from all existing centers, we will "reroll"
+and choose a new random position to try. We will also incorporate a limit on
+the number of rerolls to prevent too many (and potentially infinitely many)
+rerolls.
+

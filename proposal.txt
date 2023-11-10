@@ -31,4 +31,9 @@ Challenge goals:
 
 ==============
 
+Picture this, you've just watched Interstellar and you want to have your Matthew McConaughey style
+adventure. Unfortunately, you've got no spaceship, no money, and no Carhartt Jacket (unless you're
+THE Victor Brown). Fortunately, you do have Haskell, and all of the advantages that Functional Programming
+gives us! Armed with a computer, you set out to draw the image to capture your dreams. Who needs the
+stars to align when you've got... Stars of Chance.
 

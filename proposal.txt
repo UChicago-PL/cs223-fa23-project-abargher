@@ -14,3 +14,20 @@ Topics relevant to the course include:
 - Command Line Arguments
 - Lists and their functions
 
+Easy goals:
+- Assign colors randomly
+- Generating a basic image
+- allow user input for image parameters
+
+Medium goals:
+- randomly pick star "center" points
+  
+
+Challenge goals:
+- Density function(s) for star proximity and for pixels comprising a single star
+- assign random "brightness" value (star size)
+  - to give stars a bright center appearance where they are dimmer at edges
+
+==============
+
+

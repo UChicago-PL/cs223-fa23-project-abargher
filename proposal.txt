@@ -6,7 +6,7 @@ by Alec Bargher & Victor Brown
 TLDR: We are going to take up Professor Chugh's suggestion of making our project
 based off of Interstellar. To do this, we are going to use random functions and
 distance parameters to draw a galaxy-like image with randomly generated stars
-of varying density
+of varying density.
 
 Topics relevant to the course include:
 - Image Generation
@@ -47,3 +47,19 @@ and choose a new random position to try. We will also incorporate a limit on
 the number of rerolls to prevent too many (and potentially infinitely many)
 rerolls.
 
+The core of our star generation is picking where the centers of each star lie.
+One method for picking these centers is to choose a fixed number of stars we
+want to generate as well as a fixed minimum distance between all stars. Then,
+we randomly generate an (x,y) position within the bounds of the desired image
+size, and add it to a list of centers. If the randomly chosen position is not
+at least the minimum distance away from all existing centers, we will "reroll"
+and choose a new random position to try. We will also incorporate a limit on
+the number of rerolls to prevent too many (and potentially infinitely many)
+rerolls.
+
+There are two ideas for generating star centers. The first approach involves iterating from every pixel
+in the array from (0,0) -> (row, col) where row is the height of the image and column is the length.
+For each pixel, there is a probability function of this pixel being a star center that can be written
+as below. P(X) = 1/x if forall prev_center, d(prev_center, curr_center) < threshold, and 0 otherwise.
+I am curious to see whether this approach would equally distribute star centers, or favor a certain quadrant
+(my guess would be the top left).

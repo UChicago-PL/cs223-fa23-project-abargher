@@ -53,3 +53,11 @@ For each pixel, there is a probability function of this pixel being a star cente
 as below. P(X) = 1/x if forall prev_center, d(prev_center, curr_center) < threshold, and 0 otherwise.
 I am curious to see whether this approach would equally distribute star centers, or favor a certain quadrant
 (my guess would be the top left).
+
+
+The last part of this project is trying to ensure that we draw stars that actually look like stars.
+To do this, we are going to create a function that allows us to identify the distance of that pixel
+from the center of the star, determine whether or not to draw a pixel, and what brightness/luminance
+to draw these pixels. There will be a certain threshold that we will no longer draw pixels related
+to that star, to ensure there is some contrast between what a star looks like and what the black sky
+looks like.

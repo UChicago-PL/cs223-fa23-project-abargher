@@ -59,8 +59,6 @@ or kinds of colors, and more. Wherever there is a parameter, we could allow the
 user to input their own values as command line arguments (to start), or if time
 allows, perhaps create a more friendly interface for choosing parameters.
 
-
-
 The last part of this project is trying to ensure that we draw stars that actually look like stars.
 To do this, we are going to create a function that allows us to identify the distance of that pixel
 from the center of the star, determine whether or not to draw a pixel, and what brightness/luminance

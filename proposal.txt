@@ -58,3 +58,12 @@ parameters. The density of star centers, the size/brightness of stars, the color
 or kinds of colors, and more. Wherever there is a parameter, we could allow the
 user to input their own values as command line arguments (to start), or if time
 allows, perhaps create a more friendly interface for choosing parameters.
+
+
+
+The last part of this project is trying to ensure that we draw stars that actually look like stars.
+To do this, we are going to create a function that allows us to identify the distance of that pixel
+from the center of the star, determine whether or not to draw a pixel, and what brightness/luminance
+to draw these pixels. There will be a certain threshold that we will no longer draw pixels related
+to that star, to ensure there is some contrast between what a star looks like and what the black sky
+looks like.

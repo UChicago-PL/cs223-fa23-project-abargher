@@ -3,3 +3,14 @@ Stars of Chance
 by Alec Bargher & Victor Brown
 -----------
 
+TLDR: We are going to take up Professor Chugh's suggestion of making our project
+based off of Interstellar. To do this, we are going to use random functions and
+distance parameters to draw stars that are of a specific density.
+
+Topics relevant to the course include:
+- Image Generation
+- Recursion
+- Colorful Image / Text
+- Command Line Arguments
+- Lists and their functions
+

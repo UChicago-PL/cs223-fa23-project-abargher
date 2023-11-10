@@ -36,3 +36,9 @@ THE Victor Brown). Fortunately, you do have Haskell, and all of the advantages t
 gives us! Armed with a computer, you set out to draw the image to capture your dreams. Who needs the
 stars to align when you've got... Stars of Chance.
 
+There are two ideas for generating star centers. The first approach involves iterating from every pixel
+in the array from (0,0) -> (row, col) where row is the height of the image and column is the length.
+For each pixel, there is a probability function of this pixel being a star center that can be written
+as below. P(X) = 1/x if forall prev_center, d(prev_center, curr_center) < threshold, and 0 otherwise.
+I am curious to see whether this approach would equally distribute star centers, or favor a certain quadrant
+(my guess would be the top left).

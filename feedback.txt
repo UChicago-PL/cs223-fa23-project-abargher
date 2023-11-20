@@ -1,0 +1,10 @@
+===== Project Feedback =====
+member: abargher
+member: victorfbrown
+
+Loren's Feedback:
+Really cool idea. I definitely think the iteration method would bias the star distribution; since this all needs to be inside a Rand, you could maybe try randomizing the order in which you consider generating a star at a location.
+Bhakti's Feedback:
+I love it! Excited to see how it goes. Maybe one of the stars can be matthew mcconaughey ... Some low hanging fruit i see is adding a user interface (graphical or textual, take your pick) for allowing the user to enter their parameters, if this isn't something you had already considered .
+
+Score: 3/3

@@ -16,13 +16,19 @@ type Point = (Int, Int)
 
 distance :: Point -> Point -> Double
 distance (i1,j1) (i2,j2) =
-    sqrt ((fromIntegral i1  - fromIntegral i2)^2 + (fromIntegral j1 - fromIntegral j2)^2)
+  let
+    i1' = fromIntegral i1
+    j1' = fromIntegral j1
+    i2' = fromIntegral i2
+    j2' = fromIntegral j2
+  in
+    sqrt ((i1' - i2')^2 + (j1' - j2')^2)
 
 identifyCenters :: [Point] -> Double -> Double -> [Point] -> Rand [Point]
 identifyCenters [] _ _ centers = pure centers
 identifyCenters (newPoint:as) density threshold centers = do
     g <- get
-    let (randVal, newGen) = uniformR (0,1) g
+    let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
     put newGen
     if all (\p -> distance p newPoint >= threshold) centers && (randVal <= density) then
       identifyCenters as density threshold (newPoint : centers)

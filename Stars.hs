@@ -9,7 +9,7 @@ import qualified Graphics.Image as Image
 type Point = (Int, Int)
 
 getPixels :: [[Point]] -> [Point] -> [[Pixel Y Double]]
-getPixels locs centers = 
+getPixels locs centers =
   let
     black = Image.PixelY 0.0
     white = Image.PixelY 1.0
@@ -17,7 +17,7 @@ getPixels locs centers =
     map (map (\pr -> if pr `elem` centers then white else black)) locs
 
 buildImage :: FilePath -> Int -> Int -> [Point] -> IO ()
-buildImage path width height centers = 
+buildImage path width height centers =
   let
     black = Image.PixelY 0.0
     white = Image.PixelY 1.0

@@ -33,17 +33,17 @@ distance (i1,j1) (i2,j2) =
   in
     sqrt ((i1' - i2')^2 + (j1' - j2')^2)
 
-identifyCenters :: [Point] -> Double -> Double -> [Point] -> Rand [Point]
-identifyCenters [] _ _ centers = pure centers
-identifyCenters (newPoint:as) density threshold centers = do
+identifyCenters :: [Point] -> Double -> [Point] -> Rand [Point]
+identifyCenters [] _ centers = pure centers
+identifyCenters (newPoint:as) density centers = do
     g <- get
     let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
     put newGen
     -- if all (\p -> distance p newPoint >= threshold) centers && (randVal <= density) then
     if randVal <= density then
-      identifyCenters as density threshold (newPoint : centers)
+      identifyCenters as density (newPoint : centers)
     else
-      identifyCenters as density threshold centers
+      identifyCenters as density centers
 
 black = Image.PixelY 0.0
 white = Image.PixelY 1.0
@@ -78,5 +78,5 @@ main :: IO ()
 main = do
   stdGen <- initStdGen
   -- let centers = evalState (identifyCenters (evalState (shuffle [(i, j) | i <- [0..height-1], j <- [0..width-1]]) stdGen) 0.1 8.0 []) stdGen
-  let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 8.0 []) stdGen
+  let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
   buildImage "test-1.png" width height centers

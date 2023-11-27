@@ -24,7 +24,7 @@ distance (i1,j1) (i2,j2) =
 identifyCenters :: Point -> Double -> Double -> [Point] -> Rand [Point]
 identifyCenters newPoint density threshold centers = do
     g <- get
-    let (randVal, newGen) = uniformR (0,1) g
+    let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
     put newGen
     if all (\p -> distance p newPoint <= threshold) centers && (randVal <= density) then
         pure [newPoint]

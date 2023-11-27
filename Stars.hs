@@ -1,18 +1,14 @@
 module Stars where
 
 import State
-
 import System.Random
-
 import Data.List
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
 import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
-import MonadicShuffle
+import MonadicShuffle (Rand)
 type Point = (Int, Int)
-
--- type Rand a = State StdGen a
 
 -- Taken directly from source at 
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery
@@ -39,7 +35,6 @@ identifyCenters (newPoint:as) density centers = do
     g <- get
     let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
     put newGen
-    -- if all (\p -> distance p newPoint >= threshold) centers && (randVal <= density) then
     if randVal <= density then
       identifyCenters as density (newPoint : centers)
     else
@@ -62,8 +57,6 @@ buildImage path width height centers =
   let
     black = Image.PixelY 0.0
     white = Image.PixelY 1.0
-    -- locs = groupBy (\(a, _) (b, _) -> a == b)
-    --         [(i, j) | i <- [0..height-1], j <- [0..width-1]]
     locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
     pixels = splitEvery width $ getPixels locs (sort centers)
     img :: Image VU Y Double = Image.fromListsR VU pixels
@@ -77,6 +70,5 @@ width = 1000
 main :: IO ()
 main = do
   stdGen <- initStdGen
-  -- let centers = evalState (identifyCenters (evalState (shuffle [(i, j) | i <- [0..height-1], j <- [0..width-1]]) stdGen) 0.1 8.0 []) stdGen
   let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
   buildImage "test-1.png" width height centers

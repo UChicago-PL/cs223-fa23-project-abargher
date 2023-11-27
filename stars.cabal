@@ -6,6 +6,6 @@ executable stars
   hs-source-dirs:   .
   main-is:          Stars.hs
   ghc-options:      -main-is Stars
-  build-depends:    base
-  -- build-depends:    base, containers, hip   (example packages)
+  other-modules:    State, MonadicShuffle
+  build-depends:    base, containers, random
   default-language: GHC2021

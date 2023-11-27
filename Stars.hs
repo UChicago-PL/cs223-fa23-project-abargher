@@ -1,16 +1,14 @@
 module Stars where
 
 import State
-
 import System.Random
-
 import Data.List
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
 import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
-type Point = (Int, Int)
 
+type Point = (Int, Int)
 type Rand a = State StdGen a
 
 distance :: Point -> Point -> Double

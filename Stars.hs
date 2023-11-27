@@ -1,12 +1,31 @@
 module Stars where
 
+import State
+
+import System.Random
+
 import Data.List
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
 import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
-
 type Point = (Int, Int)
+
+type Rand a = State StdGen a
+
+distance :: Point -> Point -> Double
+distance (i1,j1) (i2,j2) =
+    sqrt ((fromIntegral i1  - fromIntegral i2)^2 + (fromIntegral j1 - fromIntegral j2)^2)
+
+identifyCenters :: Point -> Double -> Double -> [Point] -> Rand [Point]
+identifyCenters newPoint density threshold centers = do
+    g <- get
+    let (randVal, newGen) = uniformR (0,1) g
+    put newGen
+    if all (\p -> distance p newPoint <= threshold) centers && (randVal <= density) then
+        pure [newPoint]
+    else
+        pure []
 
 getPixels :: [[Point]] -> [Point] -> [[Pixel Y Double]]
 getPixels locs centers = 

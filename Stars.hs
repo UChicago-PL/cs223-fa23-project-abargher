@@ -13,7 +13,13 @@ type Rand a = State StdGen a
 
 distance :: Point -> Point -> Double
 distance (i1,j1) (i2,j2) =
-    sqrt ((fromIntegral i1  - fromIntegral i2)^2 + (fromIntegral j1 - fromIntegral j2)^2)
+  let
+    i1' = fromIntegral i1
+    j1' = fromIntegral j1
+    i2' = fromIntegral i2
+    j2' = fromIntegral j2
+  in
+    sqrt ((i1' - i2')^2 + (j1' - j2')^2)
 
 identifyCenters :: Point -> Double -> Double -> [Point] -> Rand [Point]
 identifyCenters newPoint density threshold centers = do

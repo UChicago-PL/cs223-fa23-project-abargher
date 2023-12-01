@@ -10,6 +10,10 @@ import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
 type Point = (Int, Int)
 
+gaussianMean = 0
+gaussianVariance = 100
+distanceDampeningCoefficient = 2
+
 -- Taken directly from source at 
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery
 -- source code: https://hackage.haskell.org/package/list-grouping-0.1.1/docs/src/Data-List-Grouping.html#splitEvery
@@ -63,6 +67,26 @@ buildImage path width height centers =
   in
     Image.writeImage path img
 
+gaussian :: Double -> Double -> Double -> Double
+gaussian mean variance x = exp ((-1) * ((x - mean) ** 2) / (2 * variance)) / sqrt (2 * pi * variance)
+
+luminance :: Point -> Point -> Rand (Point, Double)
+luminance center point = do
+  g <- get
+  let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
+  put newGen
+  let actualDistance = distance point center
+  if actualDistance == 0 then
+    pure (point, 1.0)
+  else do
+    let gaussianLuminance = gaussian gaussianMean gaussianVariance (actualDistance * distanceDampeningCoefficient + randVal) 
+    let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
+    pure (point, regularizedLuminance)
+
+generateRelevantPoints :: Point -> [Point]
+generateRelevantPoints (x,y) =
+  [(x,y), (y,x), (-x,y), (y,-x), (x,-y), (-y, x), (-x,-y), (-y, -x)]
+
 
 height = 1000
 width = 1000
@@ -70,5 +94,9 @@ width = 1000
 main :: IO ()
 main = do
   stdGen <- initStdGen
-  let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
-  buildImage "test-1.png" width height centers
+  -- let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
+  -- buildImage "test-1.png" width height centers
+  let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
+  -- let as = evalState (luminance (0,0) (1,0)) stdGen
+
+  print newLuminance

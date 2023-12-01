@@ -10,9 +10,9 @@ import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
 type Point = (Int, Int)
 
-gaussMean = 0
-gaussVar = 100
-dampCoeff = 2
+gaussianMean = 0
+gaussianVariance = 100
+distanceDampeningCoefficient = 2
 
 -- Taken directly from source at 
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery
@@ -49,12 +49,17 @@ white = Image.PixelY 1.0
 
 getPixels :: [Point] -> [(Point, Image.Pixel Y Double)] -> [Pixel Y Double]
 getPixels [] _ = []
-getPixels rest [] = replicate (length rest) black
+-- getPixels rest [] = replicate (length rest) black
+getPixels rest [] = map (const black) rest
 getPixels (p:ps) cs@((c, pix):cs') =
   if p == c then
     pix : getPixels ps cs'
   else
     black : getPixels ps cs
+
+withinBounds :: Int -> Int -> Point -> Bool
+withinBounds width height (r, c) =
+  (r >= 0 && r < height) && (c >= 0 && c < width)
 
 buildImage :: FilePath -> Int -> Int -> [Point] -> Rand (IO ())
 buildImage path width height centers = do
@@ -63,13 +68,16 @@ buildImage path width height centers = do
   let lower = 2
   let upper = 10
   let locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
-  let filled = zip centers (map (fst . (\p -> runState (buildNeighborhood lower upper p) g)) centers)
-  let lights = (Image.PixelY <$>) <$> concatMap (\(c, lp) -> map (fst . \p -> runState (luminance c p) g) lp) filled
-  let pixels = splitEvery width $ getPixels locs (sort lights)
+  let filledAll = map (fst . (\p -> runState (buildNeighborhood width height (lower, upper) p) g)) centers
+  let filled = zip centers $ map (filter (withinBounds width height)) filledAll
+  let lights = map ((Image.PixelY <$>) . fst) (concatMap (\(center, lp) -> map (\p -> runState (luminance center p) g) lp) filled)
+  let lights2 = map (,white) $ concatMap snd filled
+  let pixels = splitEvery width $ getPixels locs (sort lights2)
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
   pure $ Image.writeImage path img
-  -- pure $ print lights
+  -- pure $ print $ sort $ filter (withinBounds width height) $ concat filledAll
+  -- pure $ print $ length lights2
 
 gaussian :: Double -> Double -> Double -> Double
 gaussian mean variance x =
@@ -80,20 +88,20 @@ luminance center point = do
   g <- get
   let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
   put newGen
-  let dist = distance point center
-  if dist == 0 then
+  let actualDistance = distance point center
+  if actualDistance == 0 then
     pure (point, 1.0)
   else do
-    let gaussLum = gaussian gaussMean gaussVar (dist * dampCoeff + randVal)
-    let regLum = gaussLum / gaussian gaussMean gaussVar 0
-    pure (point, regLum)
+    let gaussianLuminance = gaussian gaussianMean gaussianVariance (actualDistance * distanceDampeningCoefficient + randVal)
+    let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
+    pure (point, regularizedLuminance)
 
 -- Borrowed right from https://stackoverflow.com/a/16109302
 rmdups :: (Ord a) => [a] -> [a]
 rmdups = map head . group . sort
 
 mirroredPoints :: Point -> [Point]
-mirroredPoints (x,y) =
+mirroredPoints (y, x) =
   let
     smallerY = min y (-y)
     biggerY = max y (-y)
@@ -108,9 +116,9 @@ tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
 tupleAdd (a, b) (x, y) = (a + x, b + y)
 
 -- Using the midpoint circle algorithm to generate a "circle" in the grid
-generateCircle :: Point -> Int -> [Point]
-generateCircle center radius =
-  map (tupleAdd center) $ rmdups $ generateCircle' radius 0 (1 - radius)
+generateCircle :: Point -> Int -> Int -> Int -> [Point]
+generateCircle (row, col) width height radius =
+  map (tupleAdd (col - width `div` 2, row - height `div` 2)) $ rmdups $ generateCircle' radius 0 (1 - radius)
   where
   generateCircle' :: Int -> Int -> Int -> [Point]
   generateCircle' x y p
@@ -121,21 +129,24 @@ generateCircle center radius =
       else
         generateCircle' (x - 1) (y + 1) (p + (2 * (y - x) + 1))
 
-buildNeighborhood :: Int -> Int -> Point -> Rand [Point]
-buildNeighborhood lower upper p = do
+buildNeighborhood :: Int -> Int -> (Int, Int) -> Point -> Rand [Point]
+buildNeighborhood width height radRange p = do
   g <- get
-  let (radius, g') = uniformR (lower, upper) g
+  let (radius, g') = uniformR radRange g
   put g'
-  pure $ generateCircle p radius
+  let cartesianPts = generateCircle p width height radius
+  let imgPts = map (\(x, y) -> (height `div` 2 - y, x + width `div` 2)) cartesianPts
+  pure imgPts
 
 
-height = 1000
-width = 1000
+height = 100
+width = 100
 
 main :: IO ()
 main = do
   stdGen <- initStdGen
   let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
+  -- print centers
   evalState (buildImage "test-1.png" width height centers) stdGen
   -- let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
   -- let as = evalState (luminance (0,0) (1,0)) stdGen

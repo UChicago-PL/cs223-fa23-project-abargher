@@ -47,25 +47,27 @@ identifyCenters (newPoint:as) density centers = do
 black = Image.PixelY 0.0
 white = Image.PixelY 1.0
 
-getPixels :: [Point] -> [Point] -> [Pixel Y Double]
+getPixels :: [Point] -> [(Point, Image.Pixel Y Double)] -> [Pixel Y Double]
 getPixels [] _ = []
 getPixels rest [] = replicate (length rest) black
-getPixels (p:ps) cs@(c:cs') =
+getPixels (p:ps) cs@((c, pix):cs') =
   if p == c then
-    white : getPixels ps cs'
+    pix : getPixels ps cs'
   else
     black : getPixels ps cs
 
-buildImage :: FilePath -> Int -> Int -> [Point] -> IO ()
-buildImage path width height centers =
-  let
-    black = Image.PixelY 0.0
-    white = Image.PixelY 1.0
-    locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
-    pixels = splitEvery width $ getPixels locs (sort centers)
-    img :: Image VU Y Double = Image.fromListsR VU pixels
-  in
-    Image.writeImage path img
+buildImage :: FilePath -> Int -> Int -> [Point] -> Rand (IO ())
+buildImage path width height centers = do
+  g <- get
+  -- range of star radii - refactor into an input
+  let lower = 2
+  let upper = 10
+  let locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
+  let filled = map (\p -> runState (buildNeighborhood lower upper p) g) centers
+  let pixels = splitEvery width $ getPixels locs (sort filled)
+
+  let img :: Image VU Y Double = Image.fromListsR VU pixels
+  pure $ Image.writeImage path img
 
 gaussian :: Double -> Double -> Double -> Double
 gaussian mean variance x = exp ((-1) * ((x - mean) ** 2) / (2 * variance)) / sqrt (2 * pi * variance)
@@ -108,8 +110,8 @@ generateCircle center radius =
       else
         generateCircle' (x - 1) (y + 1) (p + (2 * (y - x) + 1))
 
-buildNeighborhood :: Point -> Int -> Int -> Rand [Point]
-buildNeighborhood p lower upper = do
+buildNeighborhood :: Int -> Int -> Point -> Rand [Point]
+buildNeighborhood lower upper p = do
   g <- get
   let (radius, g') = uniformR (lower, upper) g
   put g'

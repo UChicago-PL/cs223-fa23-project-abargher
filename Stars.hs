@@ -91,7 +91,18 @@ rmdups = map head . group . sort
 
 mirroredPoints :: Point -> [Point]
 mirroredPoints (x,y) =
-  [(x,y), (y,x), (-x,y), (y,-x), (x,-y), (-y, x), (-x,-y), (-y, -x)]
+  let
+    smallerY = min y (-y) 
+    biggerY = max y (-y)
+    rightVert = [(x, i) | i <- [smallerY..biggerY]]
+    topHoriz = [(i, x) | i <- [smallerY..biggerY]]
+    leftVert = [(-x, i) | i <- [smallerY..biggerY]]
+    bottomHoriz = [(i, -x) | i <- [smallerY..biggerY]]
+  in
+    (rightVert ++ topHoriz ++ leftVert ++ bottomHoriz)
+    
+  
+
 
 tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
 tupleAdd (a, b) (x, y) = (a + x, b + y)
@@ -129,4 +140,4 @@ main = do
   let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
   -- let as = evalState (luminance (0,0) (1,0)) stdGen
 
-  print newLuminance
+  print $ sort $ mirroredPoints (2,1)

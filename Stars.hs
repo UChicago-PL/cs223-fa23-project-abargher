@@ -101,9 +101,6 @@ mirroredPoints (x,y) =
   in
     (rightVert ++ topHoriz ++ leftVert ++ bottomHoriz)
     
-  
-
-
 tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
 tupleAdd (a, b) (x, y) = (a + x, b + y)
 

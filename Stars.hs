@@ -10,9 +10,9 @@ import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
 type Point = (Int, Int)
 
-gaussianMean = 0
-gaussianVariance = 100
-distanceDampeningCoefficient = 2
+gaussMean = 0
+gaussVar = 100
+dampCoeff = 2
 
 -- Taken directly from source at 
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery
@@ -63,27 +63,30 @@ buildImage path width height centers = do
   let lower = 2
   let upper = 10
   let locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
-  let filled = map (\p -> runState (buildNeighborhood lower upper p) g) centers
-  let pixels = splitEvery width $ getPixels locs (sort filled)
+  let filled = zip centers (map (fst . (\p -> runState (buildNeighborhood lower upper p) g)) centers)
+  let lights = (Image.PixelY <$>) <$> concatMap (\(c, lp) -> map (fst . \p -> runState (luminance c p) g) lp) filled
+  let pixels = splitEvery width $ getPixels locs (sort lights)
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
   pure $ Image.writeImage path img
+  -- pure $ print lights
 
 gaussian :: Double -> Double -> Double -> Double
-gaussian mean variance x = exp ((-1) * ((x - mean) ** 2) / (2 * variance)) / sqrt (2 * pi * variance)
+gaussian mean variance x =
+  exp ((-1) * ((x - mean) ** 2) / (2 * variance)) / sqrt (2 * pi * variance)
 
 luminance :: Point -> Point -> Rand (Point, Double)
 luminance center point = do
   g <- get
   let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
   put newGen
-  let actualDistance = distance point center
-  if actualDistance == 0 then
+  let dist = distance point center
+  if dist == 0 then
     pure (point, 1.0)
   else do
-    let gaussianLuminance = gaussian gaussianMean gaussianVariance (actualDistance * distanceDampeningCoefficient + randVal) 
-    let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
-    pure (point, regularizedLuminance)
+    let gaussLum = gaussian gaussMean gaussVar (dist * dampCoeff + randVal)
+    let regLum = gaussLum / gaussian gaussMean gaussVar 0
+    pure (point, regLum)
 
 -- Borrowed right from https://stackoverflow.com/a/16109302
 rmdups :: (Ord a) => [a] -> [a]
@@ -92,7 +95,7 @@ rmdups = map head . group . sort
 mirroredPoints :: Point -> [Point]
 mirroredPoints (x,y) =
   let
-    smallerY = min y (-y) 
+    smallerY = min y (-y)
     biggerY = max y (-y)
     rightVert = [(x, i) | i <- [smallerY..biggerY]]
     topHoriz = [(i, x) | i <- [smallerY..biggerY]]
@@ -100,7 +103,7 @@ mirroredPoints (x,y) =
     bottomHoriz = [(i, -x) | i <- [smallerY..biggerY]]
   in
     (rightVert ++ topHoriz ++ leftVert ++ bottomHoriz)
-    
+
 tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
 tupleAdd (a, b) (x, y) = (a + x, b + y)
 
@@ -110,10 +113,10 @@ generateCircle center radius =
   map (tupleAdd center) $ rmdups $ generateCircle' radius 0 (1 - radius)
   where
   generateCircle' :: Int -> Int -> Int -> [Point]
-  generateCircle' x y p 
+  generateCircle' x y p
     | y > x = []
     | otherwise = mirroredPoints (x, y) ++
-      if p <= 0 then 
+      if p <= 0 then
         generateCircle' x (y + 1) (p + (2 * y + 1))
       else
         generateCircle' (x - 1) (y + 1) (p + (2 * (y - x) + 1))
@@ -132,9 +135,9 @@ width = 1000
 main :: IO ()
 main = do
   stdGen <- initStdGen
-  -- let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
-  -- buildImage "test-1.png" width height centers
-  let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
+  let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
+  evalState (buildImage "test-1.png" width height centers) stdGen
+  -- let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
   -- let as = evalState (luminance (0,0) (1,0)) stdGen
 
-  print $ sort $ mirroredPoints (2,1)
+  -- print $ sort $ mirroredPoints (2,1)

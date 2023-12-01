@@ -86,6 +86,22 @@ luminance center point = do
 generateRelevantPoints :: Point -> [Point]
 generateRelevantPoints (x,y) =
   [(x,y), (y,x), (-x,y), (y,-x), (x,-y), (-y, x), (-x,-y), (-y, -x)]
+-- Using the midpoint circle algorithm to generate a "circle" in the grid
+
+generateCircle :: Point -> Int -> [Point]
+generateCircle center radius = generateCircle' radius 0 (1 - radius) where
+  generateCircle' :: Int -> Int -> Int -> [Point]
+  generateCircle' x y p 
+    | y > x = []
+    | otherwise = undefined
+
+
+buildNeighborhood :: Point -> Int -> Int -> Rand [Point]
+buildNeighborhood p lower upper = do
+  g <- get
+  let (radius, g') = uniformR (lower, upper) g
+  put g'
+  pure $ generateCircle p radius
 
 
 height = 1000

@@ -83,18 +83,30 @@ luminance center point = do
     let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
     pure (point, regularizedLuminance)
 
-generateRelevantPoints :: Point -> [Point]
-generateRelevantPoints (x,y) =
-  [(x,y), (y,x), (-x,y), (y,-x), (x,-y), (-y, x), (-x,-y), (-y, -x)]
--- Using the midpoint circle algorithm to generate a "circle" in the grid
+-- Borrowed right from https://stackoverflow.com/a/16109302
+rmdups :: (Ord a) => [a] -> [a]
+rmdups = map head . group . sort
 
+mirroredPoints :: Point -> [Point]
+mirroredPoints (x,y) =
+  [(x,y), (y,x), (-x,y), (y,-x), (x,-y), (-y, x), (-x,-y), (-y, -x)]
+
+tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
+tupleAdd (a, b) (x, y) = (a + x, b + y)
+
+-- Using the midpoint circle algorithm to generate a "circle" in the grid
 generateCircle :: Point -> Int -> [Point]
-generateCircle center radius = generateCircle' radius 0 (1 - radius) where
+generateCircle center radius =
+  map (tupleAdd center) $ rmdups $ generateCircle' radius 0 (1 - radius)
+  where
   generateCircle' :: Int -> Int -> Int -> [Point]
   generateCircle' x y p 
     | y > x = []
-    | otherwise = undefined
-
+    | otherwise = mirroredPoints (x, y) ++
+      if p <= 0 then 
+        generateCircle' x (y + 1) (p + (2 * y + 1))
+      else
+        generateCircle' (x - 1) (y + 1) (p + (2 * (y - x) + 1))
 
 buildNeighborhood :: Point -> Int -> Int -> Rand [Point]
 buildNeighborhood p lower upper = do

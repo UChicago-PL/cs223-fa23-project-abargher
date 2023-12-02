@@ -3,6 +3,7 @@ module Stars where
 import State
 import System.Random
 import Data.List
+import Data.Ord
 import qualified Data.Map as Map
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
@@ -73,6 +74,11 @@ imgToCartesians width height imgPoints =
   filter (\(x,y) -> (x >= -width `div` 2) && (x <= -width `div` 2) && (y >= -height `div` 2) && (y <= height `div` 2))
   (map (imgToCartesian width height) imgPoints)
 
+starSorter :: (Point, Double) -> (Point, Double) -> Ordering
+starSorter (p1, lum1) (p2, lum2) = compare (p1, Down lum1) (p2, Down lum2)
+
+sumDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
+sumDupsByFst = map (\ls -> (fst (head ls), sum (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
 buildImage :: FilePath -> Int -> Int  -> [Point] -> [Point] -> Rand (IO ())
 buildImage path width height locs centers = do
@@ -85,11 +91,14 @@ buildImage path width height locs centers = do
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
-  let lights = map (Image.PixelY <$>) $ sort $ concat lums
+  -- let lights = sumDupsByFst $ map (Image.PixelY <$>) $ sort $ concat lums
+  let lights = map (Image.PixelY <$>) $ sumDupsByFst $ sortBy starSorter $ concat lums
   let pixels = splitEvery width $ map snd $ getPixels locs lights
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
   pure $ Image.writeImage path img
+  -- pure $ print img
+  -- pure $ do {Image.writeImage path img; print lights}
 
 gaussian :: Double -> Double -> Double -> Double
 gaussian mean variance x =
@@ -111,6 +120,9 @@ luminance center point = do
 -- Borrowed right from https://stackoverflow.com/a/16109302
 rmdups :: (Ord a) => [a] -> [a]
 rmdups = map head . group . sort
+
+rmdupsBy :: (Ord a) => (a -> a -> Bool) -> [a] -> [a]
+rmdupsBy comp = map head . groupBy comp . sort
 
 mirroredPoints :: Point -> [Point]
 mirroredPoints (y, x) =
@@ -155,8 +167,8 @@ gaussianMean = 0
 gaussianVariance = 100
 distanceDampeningCoefficient = 2
 
-imgWidth = 5120
-imgHeight = 2880
+imgWidth = 2560
+imgHeight = 1600
 
 main :: IO ()
 main = do

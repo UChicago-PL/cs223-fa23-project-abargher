@@ -72,7 +72,8 @@ buildImage path width height centers = do
 
   let filled = zip centers $ map (filter (withinBounds width height)) filledAll
 
-  let lights = map ((Image.PixelY <$>) . fst) (concatMap (\(center, lp) -> map (\p -> runState (luminance center p) g) lp) filled)
+  let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
+  let lights = map (Image.PixelY <$>) $ concat lums
   let lights2 = map (,white) $ concatMap snd filled
   let pixels = splitEvery width $ getPixels locs (sort lights2)
 
@@ -118,9 +119,9 @@ tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
 tupleAdd (a, b) (x, y) = (a + x, b + y)
 
 -- Using the midpoint circle algorithm to generate a "circle" in the grid
-generateCircle :: Point -> Int -> Int -> Int -> [Point]
-generateCircle (row, col) width height radius =
-  map (tupleAdd (col - width `div` 2, row - height `div` 2)) $ rmdups $ generateCircle' radius 0 (1 - radius)
+generateCircle :: Point -> Int -> [Point]
+generateCircle (row, col) radius =
+  rmdups $ generateCircle' radius 0 (1 - radius)
   where
   generateCircle' :: Int -> Int -> Int -> [Point]
   generateCircle' x y p
@@ -136,7 +137,9 @@ buildNeighborhood width height radRange p = do
   g <- get
   let (radius, g') = uniformR radRange g
   put g'
-  let cartesianPts = generateCircle p width height radius
+  -- let p' = imgToCartesian p
+  let p' = p  -- TODO: replace with line above
+  let cartesianPts = generateCircle p' radius
   let imgPts = map (\(x, y) -> (height `div` 2 - y, x + width `div` 2)) cartesianPts
   pure imgPts
 

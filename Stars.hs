@@ -84,19 +84,20 @@ buildImage path width height centers = do
   -- range of star radii - refactor into an input
   let lower = 2
   let upper = 10
-  let locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
+  let locs = [(i, j) | i <- [0..(height-1)], j <- [0..(width-1)]]
   let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
 
   -- let filled = zip centers $ map (filter (withinBounds width height)) filledAll
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
-  let lights = map (Image.PixelY <$>) $ concat lums
+  let lights = map (Image.PixelY <$>) $ sort $ concat lums
   -- let lights2 = map (,white) $ concatMap snd filled
-  let pixels = splitEvery width $ getPixels locs (sort lights)
+  let pixels = splitEvery width $ getPixels (sort locs) lights
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
-  pure $ Image.writeImage path img
+  -- pure $ Image.writeImage path img
+  pure $ print $ length lights
   -- pure $ print $ sort lights
   -- pure $ print $ sort $ filter (withinBounds width height) $ concat filledAll
   -- pure $ print $ length lights2
@@ -162,8 +163,8 @@ buildNeighborhood width height radRange p = do
   pure imgPts
 
 
-imgHeight = 500
-imgWidth = 500
+imgHeight = 100
+imgWidth = 100
 
 main :: IO ()
 main = do

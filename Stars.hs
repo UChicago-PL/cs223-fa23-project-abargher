@@ -93,12 +93,12 @@ buildImage path width height centers = do
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
   let lights = map (Image.PixelY <$>) $ concat lums
-  let lights2 = map (,white) $ concatMap snd filled
+  -- let lights2 = map (,white) $ concatMap snd filled
   let pixels = splitEvery width $ getPixels locs (sort lights)
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
-  -- pure $ Image.writeImage path img
-  pure $ print $ sort lights
+  pure $ Image.writeImage path img
+  -- pure $ print $ sort lights
   -- pure $ print $ sort $ filter (withinBounds width height) $ concat filledAll
   -- pure $ print $ length lights2
 
@@ -140,8 +140,8 @@ tupleAdd (a, b) (x, y) = (a + x, b + y)
 
 -- Using the midpoint circle algorithm to generate a "circle" in the grid
 generateCircle :: Point -> Int -> [Point]
-generateCircle (row, col) radius =
-  rmdups $ generateCircle' radius 0 (1 - radius)
+generateCircle center radius =
+  map (tupleAdd center) $ rmdups $ generateCircle' radius 0 (1 - radius)
   where
   generateCircle' :: Int -> Int -> Int -> [Point]
   generateCircle' x y p
@@ -163,15 +163,15 @@ buildNeighborhood width height radRange p = do
   pure imgPts
 
 
-height = 500
-width = 500
+imgHeight = 500
+imgWidth = 500
 
 main :: IO ()
 main = do
   stdGen <- initStdGen
-  let centers = evalState (identifyCenters [(i, j) | i <- [0..height-1], j <- [0..width-1]] 0.001 []) stdGen
+  let centers = evalState (identifyCenters [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]] 0.001 []) stdGen
   -- print centers
-  evalState (buildImage "test-1.png" width height centers) stdGen
+  evalState (buildImage "test-1.png" imgWidth imgHeight centers) stdGen
   -- let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
   -- let as = evalState (luminance (0,0) (1,0)) stdGen
 

@@ -68,8 +68,10 @@ buildImage path width height centers = do
   let lower = 2
   let upper = 10
   let locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
-  let filledAll = map (fst . (\p -> runState (buildNeighborhood width height (lower, upper) p) g)) centers
+  let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
+
   let filled = zip centers $ map (filter (withinBounds width height)) filledAll
+
   let lights = map ((Image.PixelY <$>) . fst) (concatMap (\(center, lp) -> map (\p -> runState (luminance center p) g) lp) filled)
   let lights2 = map (,white) $ concatMap snd filled
   let pixels = splitEvery width $ getPixels locs (sort lights2)
@@ -122,10 +124,10 @@ generateCircle (row, col) width height radius =
   where
   generateCircle' :: Int -> Int -> Int -> [Point]
   generateCircle' x y p
-    | y > x = []
+    | y >= x = []
     | otherwise = mirroredPoints (x, y) ++
       if p <= 0 then
-        generateCircle' x (y + 1) (p + (2 * y + 1))
+        generateCircle' x (y + 1) (p + (2 * y) + 1)
       else
         generateCircle' (x - 1) (y + 1) (p + (2 * (y - x) + 1))
 
@@ -139,8 +141,8 @@ buildNeighborhood width height radRange p = do
   pure imgPts
 
 
-height = 100
-width = 100
+height = 500
+width = 500
 
 main :: IO ()
 main = do

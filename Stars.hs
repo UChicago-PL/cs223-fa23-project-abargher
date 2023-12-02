@@ -3,6 +3,7 @@ module Stars where
 import State
 import System.Random
 import Data.List
+import qualified Data.Map as Map
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
 import           Graphics.Image.Interface (MArray)
@@ -47,15 +48,14 @@ identifyCenters (newPoint:as) density centers = do
 black = Image.PixelY 0.0
 white = Image.PixelY 1.0
 
-getPixels :: [Point] -> [(Point, Image.Pixel Y Double)] -> [Pixel Y Double]
-getPixels [] _ = []
--- getPixels rest [] = replicate (length rest) black
-getPixels rest [] = map (const black) rest
-getPixels (p:ps) cs@((c, pix):cs') =
-  if p == c then
-    pix : getPixels ps cs'
-  else
-    black : getPixels ps cs
+getPixels :: [Point] -> [(Point, Image.Pixel Y Double)] -> [(Point, Pixel Y Double)]
+getPixels locs lights =
+  let
+    background = Map.fromAscList $ map (, black) locs
+    lights' = Map.fromAscList lights
+  in
+    Map.toAscList $ Map.unionWith const lights' background
+
 
 withinBounds :: Int -> Int -> Point -> Bool
 withinBounds width height (r, c) =
@@ -78,13 +78,12 @@ imgToCartesians width height imgPoints =
   (map (imgToCartesian width height) imgPoints)
 
 
-buildImage :: FilePath -> Int -> Int -> [Point] -> Rand (IO ())
-buildImage path width height centers = do
+buildImage :: FilePath -> Int -> Int  -> [Point] -> [Point] -> Rand (IO ())
+buildImage path width height locs centers = do
   g <- get
   -- range of star radii - refactor into an input
   let lower = 2
   let upper = 10
-  let locs = [(i, j) | i <- [0..(height-1)], j <- [0..(width-1)]]
   let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
 
   -- let filled = zip centers $ map (filter (withinBounds width height)) filledAll
@@ -92,15 +91,10 @@ buildImage path width height centers = do
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
   let lights = map (Image.PixelY <$>) $ sort $ concat lums
-  -- let lights2 = map (,white) $ concatMap snd filled
-  let pixels = splitEvery width $ getPixels (sort locs) lights
+  let pixels = splitEvery width $ map snd $ getPixels locs lights
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
-  -- pure $ Image.writeImage path img
-  pure $ print $ length lights
-  -- pure $ print $ sort lights
-  -- pure $ print $ sort $ filter (withinBounds width height) $ concat filledAll
-  -- pure $ print $ length lights2
+  pure $ Image.writeImage path img
 
 gaussian :: Double -> Double -> Double -> Double
 gaussian mean variance x =
@@ -163,15 +157,16 @@ buildNeighborhood width height radRange p = do
   pure imgPts
 
 
-imgHeight = 100
-imgWidth = 100
+imgWidth = 5120
+imgHeight = 2880
 
 main :: IO ()
 main = do
   stdGen <- initStdGen
-  let centers = evalState (identifyCenters [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]] 0.001 []) stdGen
+  let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
+  let centers = evalState (identifyCenters locs 0.001 []) stdGen
   -- print centers
-  evalState (buildImage "test-1.png" imgWidth imgHeight centers) stdGen
+  evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen
   -- let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
   -- let as = evalState (luminance (0,0) (1,0)) stdGen
 

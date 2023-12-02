@@ -62,20 +62,21 @@ withinBounds width height (r, c) =
   (r >= 0 && r < height) && (c >= 0 && c < width)
 
 
-cartesianToImg :: Point -> Point
-cartesianToImg (x,y) = (-y - height `div` 2, x + width `div` 2)
+cartesianToImg :: Int -> Int -> Point -> Point
+cartesianToImg width height (x,y) = (-y - height `div` 2, x + width `div` 2)
 
-imgToCartesian :: Point -> Point
-imgToCartesian (negY, xOffset) = (xOffset - width `div` 2, -negY - height `div` 2)
+imgToCartesian :: Int -> Int -> Point -> Point
+imgToCartesian width height (r, c) = (c - width `div` 2, (-r) - height `div` 2)
 
-cartesianToImages :: Int -> Int -> [Point] -> [Point] 
+cartesianToImages :: Int -> Int -> [Point] -> [Point]
 cartesianToImages width height cartesianPoints =
-  filter (withinBounds width height) (map cartesianToImg cartesianPoints)
+  -- filter (withinBounds width height) (map cartesianToImg cartesianPoints)
+  map (cartesianToImg width height) cartesianPoints
 
 imgToCartesians :: Int -> Int -> [Point] -> [Point]
 imgToCartesians width height imgPoints =
   filter (\(x,y) -> (x >= -width `div` 2) && (x <= -width `div` 2) && (y >= -height `div` 2) && (y <= height `div` 2))
-  (map imgToCartesian imgPoints)
+  (map (imgToCartesian width height) imgPoints)
 
 
 buildImage :: FilePath -> Int -> Int -> [Point] -> Rand (IO ())
@@ -87,15 +88,17 @@ buildImage path width height centers = do
   let locs = [(i, j) | i <- [0..height-1], j <- [0..width-1]]
   let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
 
-  let filled = zip centers $ map (filter (withinBounds width height)) filledAll
+  -- let filled = zip centers $ map (filter (withinBounds width height)) filledAll
+  let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
   let lights = map (Image.PixelY <$>) $ concat lums
   let lights2 = map (,white) $ concatMap snd filled
-  let pixels = splitEvery width $ getPixels locs (sort lights2)
+  let pixels = splitEvery width $ getPixels locs (sort lights)
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
-  pure $ Image.writeImage path img
+  -- pure $ Image.writeImage path img
+  pure $ print $ sort lights
   -- pure $ print $ sort $ filter (withinBounds width height) $ concat filledAll
   -- pure $ print $ length lights2
 
@@ -154,7 +157,7 @@ buildNeighborhood width height radRange p = do
   g <- get
   let (radius, g') = uniformR radRange g
   put g'
-  let p' = imgToCartesian p
+  let p' = imgToCartesian width height p
   let cartesianPts = generateCircle p' radius
   let imgPts = cartesianToImages width height cartesianPts
   pure imgPts

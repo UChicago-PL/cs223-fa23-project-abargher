@@ -61,6 +61,24 @@ withinBounds :: Int -> Int -> Point -> Bool
 withinBounds width height (r, c) =
   (r >= 0 && r < height) && (c >= 0 && c < width)
 
+
+cartesianToImg :: Point -> Point
+cartesianToImg (x,y) = (-y - height `div` 2, x + width `div` 2)
+
+imgToCartesian :: Point -> Point
+imgToCartesian (negY, xOffset) = (xOffset - width `div` 2, -negY - height `div` 2)
+
+cartesianToImages :: Int -> Int -> [Point] -> [Point] 
+cartesianToImages width height cartesianPoints =
+  filter (\(i,j) -> (i >= 0) && (i <= height-1) && (j >= 0) && (j <= width-1))
+  (map cartesianToImg cartesianPoints)
+
+imgToCartesians :: Int -> Int -> [Point] -> [Point]
+imgToCartesians width height imgPoints =
+  filter (\(x,y) -> (x >= -width `div` 2) && (x <= -width `div` 2) && (y >= -height `div` 2) && (y <= height `div` 2))
+  (map imgToCartesian imgPoints)
+
+
 buildImage :: FilePath -> Int -> Int -> [Point] -> Rand (IO ())
 buildImage path width height centers = do
   g <- get
@@ -137,6 +155,7 @@ buildNeighborhood width height radRange p = do
   let (radius, g') = uniformR radRange g
   put g'
   let cartesianPts = generateCircle p width height radius
+
   let imgPts = map (\(x, y) -> (height `div` 2 - y, x + width `div` 2)) cartesianPts
   pure imgPts
 

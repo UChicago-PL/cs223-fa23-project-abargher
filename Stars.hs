@@ -70,8 +70,7 @@ imgToCartesian width height (r, c) = (c - width `div` 2, (-r) - height `div` 2)
 
 cartesianToImages :: Int -> Int -> [Point] -> [Point]
 cartesianToImages width height cartesianPoints =
-  -- filter (withinBounds width height) (map cartesianToImg cartesianPoints)
-  map (cartesianToImg width height) cartesianPoints
+  filter (withinBounds width height) (map (cartesianToImg width height) cartesianPoints)
 
 imgToCartesians :: Int -> Int -> [Point] -> [Point]
 imgToCartesians width height imgPoints =
@@ -124,7 +123,7 @@ rmdups :: (Ord a) => [a] -> [a]
 rmdups = map head . group . sort
 
 mirroredPoints :: Point -> [Point]
-mirroredPoints (x, y) =
+mirroredPoints (y, x) =
   let
     smallerY = min y (-y)
     biggerY = max y (-y)

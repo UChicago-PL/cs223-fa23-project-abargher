@@ -11,10 +11,6 @@ import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
 type Point = (Int, Int)
 
-gaussianMean = 0
-gaussianVariance = 100
-distanceDampeningCoefficient = 2
-
 -- Taken directly from source at 
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery
 -- source code: https://hackage.haskell.org/package/list-grouping-0.1.1/docs/src/Data-List-Grouping.html#splitEvery
@@ -34,16 +30,16 @@ distance (i1,j1) (i2,j2) =
   in
     sqrt ((i1' - i2')^2 + (j1' - j2')^2)
 
-identifyCenters :: [Point] -> Double -> [Point] -> Rand [Point]
-identifyCenters [] _ centers = pure centers
-identifyCenters (newPoint:as) density centers = do
+chooseCenters :: [Point] -> Double -> [Point] -> Rand [Point]
+chooseCenters [] _ centers = pure centers
+chooseCenters (newPoint:as) density centers = do
     g <- get
     let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
     put newGen
     if randVal <= density then
-      identifyCenters as density (newPoint : centers)
+      chooseCenters as density (newPoint : centers)
     else
-      identifyCenters as density centers
+      chooseCenters as density centers
 
 black = Image.PixelY 0.0
 white = Image.PixelY 1.0
@@ -155,6 +151,9 @@ buildNeighborhood width height radRange p = do
   let imgPts = cartesianToImages width height cartesianPts
   pure imgPts
 
+gaussianMean = 0
+gaussianVariance = 100
+distanceDampeningCoefficient = 2
 
 imgWidth = 5120
 imgHeight = 2880
@@ -163,5 +162,5 @@ main :: IO ()
 main = do
   stdGen <- initStdGen
   let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  let centers = evalState (identifyCenters locs 0.001 []) stdGen
+  let centers = evalState (chooseCenters locs 0.001 []) stdGen
   evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen

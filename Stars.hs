@@ -70,8 +70,7 @@ imgToCartesian (negY, xOffset) = (xOffset - width `div` 2, -negY - height `div` 
 
 cartesianToImages :: Int -> Int -> [Point] -> [Point] 
 cartesianToImages width height cartesianPoints =
-  filter (\(i,j) -> (i >= 0) && (i <= height-1) && (j >= 0) && (j <= width-1))
-  (map cartesianToImg cartesianPoints)
+  filter (withinBounds width height) (map cartesianToImg cartesianPoints)
 
 imgToCartesians :: Int -> Int -> [Point] -> [Point]
 imgToCartesians width height imgPoints =
@@ -155,11 +154,9 @@ buildNeighborhood width height radRange p = do
   g <- get
   let (radius, g') = uniformR radRange g
   put g'
-  -- let p' = imgToCartesian p
-  let p' = p  -- TODO: replace with line above
+  let p' = imgToCartesian p
   let cartesianPts = generateCircle p' radius
-
-  let imgPts = map (\(x, y) -> (height `div` 2 - y, x + width `div` 2)) cartesianPts
+  let imgPts = cartesianToImages width height cartesianPts
   pure imgPts
 
 

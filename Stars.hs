@@ -84,9 +84,8 @@ buildImage path width height locs centers = do
   -- range of star radii - refactor into an input
   let lower = 2
   let upper = 10
-  let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
 
-  -- let filled = zip centers $ map (filter (withinBounds width height)) filledAll
+  let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
@@ -165,9 +164,4 @@ main = do
   stdGen <- initStdGen
   let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
   let centers = evalState (identifyCenters locs 0.001 []) stdGen
-  -- print centers
   evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen
-  -- let (point, newLuminance) = evalState (luminance (0,0) (3,0)) stdGen
-  -- let as = evalState (luminance (0,0) (1,0)) stdGen
-
-  -- print $ sort $ mirroredPoints (2,1)

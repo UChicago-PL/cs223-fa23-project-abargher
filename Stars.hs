@@ -124,7 +124,7 @@ rmdups :: (Ord a) => [a] -> [a]
 rmdups = map head . group . sort
 
 mirroredPoints :: Point -> [Point]
-mirroredPoints (y, x) =
+mirroredPoints (x, y) =
   let
     smallerY = min y (-y)
     biggerY = max y (-y)

@@ -91,14 +91,11 @@ buildImage path width height locs centers = do
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
-  -- let lights = sumDupsByFst $ map (Image.PixelY <$>) $ sort $ concat lums
-  let lights = map (Image.PixelY <$>) $ sumDupsByFst $ sortBy starSorter $ concat lums
+  let lights = map ((Image.PixelY . min 1.0) <$>) $ sumDupsByFst $ sortBy starSorter $ concat lums
   let pixels = splitEvery width $ map snd $ getPixels locs lights
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
   pure $ Image.writeImage path img
-  -- pure $ print img
-  -- pure $ do {Image.writeImage path img; print lights}
 
 gaussian :: Double -> Double -> Double -> Double
 gaussian mean variance x =

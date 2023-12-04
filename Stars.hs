@@ -80,11 +80,20 @@ starSorter (p1, lum1) (p2, lum2) = compare (p1, Down lum1) (p2, Down lum2)
 avg :: Fractional a => [a] -> a
 avg ns = sum ns / fromIntegral (length ns)
 
+weightedAvg :: (Ord a, Fractional a) => [a] -> a
+weightedAvg ns = 
+  let 
+    listLength = length ns 
+    enum = [1..] :: [Int]
+    toN = (fromIntegral listLength * (fromIntegral listLength + 1) / 2)
+  in
+    sum (zipWith (*) (sort ns) (map fromIntegral enum)) / toN
+
 sumDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
 sumDupsByFst = map (\ls -> (fst (head ls), sum (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
 avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(a, b)] -> [(a, b)]
-avgDupsByFst = map (\ls -> (fst (head ls), avg (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
+avgDupsByFst = map (\ls -> (fst (head ls), weightedAvg (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
 headDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
 headDupsByFst = map (\ls -> (fst (head ls), head (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
@@ -96,8 +105,8 @@ buildImage path width height locs centers = do
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
-  let lums' = filter 
-  let lights = map ((Image.PixelY . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums
+  let lums' = map (filter (\(_, lum) -> lum > 0.01)) lums
+  let lights = map ((Image.PixelY . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums'
   let pixels = splitEvery width $ map snd $ getPixels locs lights
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
@@ -168,14 +177,14 @@ buildNeighborhood width height radRange p = do
   pure imgPts
 
 gaussianMean = 0
-gaussianVariance = 100
+gaussianVariance = 800
 distanceDampeningCoefficient = 2
 
 imgWidth = 2560
 imgHeight = 1600
 
 lowerRadiusBound = 10
-upperRadiusBound = 50
+upperRadiusBound = 100
 
 main :: IO ()
 main = do

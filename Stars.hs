@@ -96,7 +96,7 @@ buildImage path width height locs centers = do
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
-  let lights = map ((Image.PixelY . min 1.0) <$>) $ sumDupsByFst $ sortBy starSorter $ concat lums
+  let lights = map ((Image.PixelY . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums
   let pixels = splitEvery width $ map snd $ getPixels locs lights
 
   let img :: Image VU Y Double = Image.fromListsR VU pixels
@@ -117,7 +117,7 @@ luminance center point = do
     put newGen
     let randomDistance = actualDistance * distanceDampeningCoefficient + randVal
     let gaussianLuminance = gaussian gaussianMean gaussianVariance randomDistance
-    let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
+    let regularizedLuminance = gaussianLuminance + (1 - gaussian gaussianMean gaussianVariance 0) / actualDistance
     pure (point, regularizedLuminance)
 
 -- Borrowed right from https://stackoverflow.com/a/16109302
@@ -180,5 +180,5 @@ main :: IO ()
 main = do
   stdGen <- initStdGen
   let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  let centers = evalState (chooseCenters locs 0.001 []) stdGen
+  let centers = evalState (chooseCenters locs 0.0001 []) stdGen
   evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen

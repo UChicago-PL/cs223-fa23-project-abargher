@@ -180,11 +180,14 @@ gaussianMean = 0
 gaussianVariance = 800
 distanceDampeningCoefficient = 2
 
-imgWidth = 2560
-imgHeight = 1600
+-- imgWidth = 2560
+-- imgHeight = 1600
 
-lowerRadiusBound = 10
-upperRadiusBound = 100
+imgWidth = 500
+imgHeight = 500
+
+lowerRadiusBound = 5
+upperRadiusBound = 20
 
 main :: IO ()
 main = do

@@ -4,12 +4,15 @@ import State
 import System.Random
 import Data.List
 import Data.Ord
+import GHC.Data.Maybe
 import qualified Data.Map as Map
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
 import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
+import UserInterface
+import UserInterface (getResolution)
 type Point = (Int, Int)
 
 -- Taken directly from source at 
@@ -189,18 +192,13 @@ imgHeight = 1600
 lowerRadiusBound = 5
 upperRadiusBound = 20
 
-type Color = (Double, Double, Double, Double)
 
-data Specs = Specs { width :: Int
-                   , height :: Int
-                   , starSizeRange :: (Int, Int)
-                   , starColors :: (Color, Color)
-                   , bgColor :: Color
-                   }
-
-main :: IO ()
+main :: IO (Maybe ())
 main = do
   stdGen <- initStdGen
-  let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  let centers = evalState (chooseCenters locs 0.0004 []) stdGen
-  evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen
+  out <- runMaybeT getParameters
+  pure $ Just ()
+
+  -- let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
+  -- let centers = evalState (chooseCenters locs 0.0004 []) stdGen
+  -- evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen

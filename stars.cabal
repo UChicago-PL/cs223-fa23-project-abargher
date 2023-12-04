@@ -7,5 +7,5 @@ executable stars
   main-is:          Stars.hs
   ghc-options:      -main-is Stars
   other-modules:    State, MonadicShuffle, UserInterface
-  build-depends:    base, containers, random, hip
+  build-depends:    base, containers, random, hip, ghc, split
   default-language: GHC2021

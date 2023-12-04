@@ -180,18 +180,27 @@ gaussianMean = 0
 gaussianVariance = 800
 distanceDampeningCoefficient = 2
 
--- imgWidth = 2560
--- imgHeight = 1600
+imgWidth = 2560
+imgHeight = 1600
 
-imgWidth = 500
-imgHeight = 500
+-- imgWidth = 500
+-- imgHeight = 500
 
 lowerRadiusBound = 5
 upperRadiusBound = 20
+
+type Color = (Double, Double, Double, Double)
+
+data Specs = Specs { width :: Int
+                   , height :: Int
+                   , starSizeRange :: (Int, Int)
+                   , starColors :: (Color, Color)
+                   , bgColor :: Color
+                   }
 
 main :: IO ()
 main = do
   stdGen <- initStdGen
   let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  let centers = evalState (chooseCenters locs 0.0001 []) stdGen
+  let centers = evalState (chooseCenters locs 0.0004 []) stdGen
   evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen

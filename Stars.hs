@@ -193,11 +193,11 @@ lowerRadiusBound = 5
 upperRadiusBound = 20
 
 
-main :: IO (Maybe ())
+main :: IO ()
 main = do
   stdGen <- initStdGen
   out <- runMaybeT getParameters
-  pure $ Just ()
+  print out
 
   -- let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
   -- let centers = evalState (chooseCenters locs 0.0004 []) stdGen

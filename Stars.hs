@@ -77,8 +77,17 @@ imgToCartesians width height imgPoints =
 starSorter :: (Point, Double) -> (Point, Double) -> Ordering
 starSorter (p1, lum1) (p2, lum2) = compare (p1, Down lum1) (p2, Down lum2)
 
+avg :: Fractional a => [a] -> a
+avg ns = sum ns / fromIntegral (length ns)
+
 sumDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
 sumDupsByFst = map (\ls -> (fst (head ls), sum (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
+
+avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(a, b)] -> [(a, b)]
+avgDupsByFst = map (\ls -> (fst (head ls), avg (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
+
+headDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
+headDupsByFst = map (\ls -> (fst (head ls), head (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
 buildImage :: FilePath -> Int -> Int  -> [Point] -> [Point] -> Rand (IO ())
 buildImage path width height locs centers = do

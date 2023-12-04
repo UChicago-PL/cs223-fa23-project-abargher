@@ -6,6 +6,6 @@ executable stars
   hs-source-dirs:   .
   main-is:          Stars.hs
   ghc-options:      -main-is Stars
-  other-modules:    State, MonadicShuffle, UserInterface
+  other-modules:    State, MonadicShuffle, UserInterface, InterfaceUtils
   build-depends:    base, containers, random, hip, ghc, split
   default-language: GHC2021

@@ -199,6 +199,6 @@ main = do
   out <- runMaybeT getParameters
   print out
 
-  -- let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  -- let centers = evalState (chooseCenters locs 0.0004 []) stdGen
-  -- evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen
+  let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
+  let centers = evalState (chooseCenters locs 0.0004 []) stdGen
+  evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen

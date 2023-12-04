@@ -118,7 +118,7 @@ luminance center point = do
     put newGen
     let randomDistance = actualDistance * distanceDampeningCoefficient + randVal
     let gaussianLuminance = gaussian gaussianMean gaussianVariance randomDistance
-    let regularizedLuminance = gaussianLuminance + (1 - gaussian gaussianMean gaussianVariance 0) / actualDistance
+    let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
     pure (point, regularizedLuminance)
 
 -- Borrowed right from https://stackoverflow.com/a/16109302

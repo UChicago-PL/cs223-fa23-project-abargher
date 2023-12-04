@@ -83,11 +83,7 @@ sumDupsByFst = map (\ls -> (fst (head ls), sum (map snd ls))) . groupBy (\(a, _)
 buildImage :: FilePath -> Int -> Int  -> [Point] -> [Point] -> Rand (IO ())
 buildImage path width height locs centers = do
   g <- get
-  -- range of star radii - refactor into an input
-  let lower = 2
-  let upper = 10
-
-  let (filledAll, g') = runState (mapM (buildNeighborhood width height (lower, upper)) centers) g
+  let (filledAll, g') = runState (mapM (buildNeighborhood width height (lowerRadiusBound, upperRadiusBound)) centers) g
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
@@ -103,14 +99,15 @@ gaussian mean variance x =
 
 luminance :: Point -> Point -> Rand (Point, Double)
 luminance center point = do
-  g <- get
-  let (randVal, newGen) = uniformR (0 :: Double, 1 :: Double) g
-  put newGen
   let actualDistance = distance point center
   if actualDistance == 0 then
     pure (point, 1.0)
   else do
-    let gaussianLuminance = gaussian gaussianMean gaussianVariance (actualDistance * distanceDampeningCoefficient + randVal)
+    g <- get
+    let (randVal, newGen) = uniformR (0 :: Double, actualDistance :: Double) g
+    put newGen
+    let randomDistance = actualDistance * distanceDampeningCoefficient + randVal
+    let gaussianLuminance = gaussian gaussianMean gaussianVariance randomDistance
     let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
     pure (point, regularizedLuminance)
 
@@ -166,6 +163,9 @@ distanceDampeningCoefficient = 2
 
 imgWidth = 2560
 imgHeight = 1600
+
+lowerRadiusBound = 10
+upperRadiusBound = 50
 
 main :: IO ()
 main = do

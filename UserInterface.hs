@@ -52,21 +52,8 @@ getColor = do
   let [r, g, b] = cols
   pure (r, g, b, 1.0)
 
--- getResolution :: MaybeT ReadP (Int, Int)
--- getResolution = do
---   liftMaybeT skipSpaces
---   width' <- liftMaybeT $ munch isDigit
---   let width = read width'
---   liftMaybeT skipSpaces
---   liftMaybeT $ char 'x'
---   height' <- liftMaybeT $ munch isDigit
---   let height = read height'
---   pure (width, height)
-
 prompt :: String -> MaybeT IO ()
-prompt str = do 
-  liftMaybeT $ putStr str
-  liftMaybeT $ hFlush stdout
+prompt str = liftMaybeT $ do {putStr str; hFlush stdout} 
 
 getParameters :: MaybeT IO Specs
 getParameters = do

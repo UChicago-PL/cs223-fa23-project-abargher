@@ -12,6 +12,8 @@ import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
 import UserInterface
+import Numeric.Noise.Perlin
+
 type Point = (Int, Int)
 
 -- Taken directly from source at 
@@ -60,7 +62,6 @@ withinBounds :: Int -> Int -> Point -> Bool
 withinBounds width height (r, c) =
   (r >= 0 && r < height) && (c >= 0 && c < width)
 
-
 cartesianToImg :: Int -> Int -> Point -> Point
 cartesianToImg width height (x,y) = (-y - height `div` 2, x + width `div` 2)
 
@@ -95,11 +96,10 @@ avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(c, (a, b))] -> [(c, (a, b))]
 avgDupsByFst = map (\ls -> (fst (head ls), ((fst . snd) (head ls), weightedAvg (map (snd . snd) ls)))) . groupBy (\(_, (a1, _)) (_, (a2, _)) -> a1 == a2)
 
 randPercent :: Point -> Rand (Point, Double)
-randPercent c = do
-  g <- get
-  let (p, g') = uniformR (0 :: Double, 1 :: Double) g
-  put g'
-  pure (c, p)
+randPercent c@(x, y) = do
+  let perlinNoise = perlin 1 5 0.05 0.5
+  let perlinRes = noiseValue perlinNoise (fromIntegral x, fromIntegral y, 0) 
+  pure (c, (perlinRes + 1) * 0.5)
 
 buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
 buildImage path locs centers (Specs { width = width

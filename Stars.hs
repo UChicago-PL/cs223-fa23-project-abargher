@@ -94,6 +94,13 @@ weightedAvg ns =
 avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(a, b)] -> [(a, b)]
 avgDupsByFst = map (\ls -> (fst (head ls), weightedAvg (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
+randPercent :: Point -> Rand (Point, Double)
+randPercent c = do
+  g <- get
+  let (p, g') = uniformR (0 :: Double, 1 :: Double) g
+  put g'
+  pure (c, p)
+
 buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
 buildImage path locs centers (Specs { width = width
                                     , height = height
@@ -103,18 +110,20 @@ buildImage path locs centers (Specs { width = width
                                     }) = do
   g <- get
   let (filledAll, g') = runState (mapM (buildNeighborhood width height radRange) centers) g
-  let filled = zip centers filledAll
-  let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
+  let (centerColors, g'') = runState (mapM randPercent centers) g'
+  let filled = zip centerColors filledAll
+  let (lums, g''') = runState (mapM (\((center, col), lp) ->  mapM (luminance center) lp) filled) g'
   let lums' = map (filter (\(_, lum) -> lum > 0.01)) lums
+  let lumsAndCol = zip (map snd centerColors) lums'
 
-  let (colPercent, g''') = uniformR (0 :: Double, 1 :: Double) g''
+  let (colPercent, g'''') = uniformR (0 :: Double, 1 :: Double) g'''
   let fgColor = colorToPixel $ gradient c1 c2 colPercent
 
   let lights = map ((blend (colorToPixel bgColor 1) . fgColor . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums'
   let pixels = splitEvery width $ map snd $ getPixels bgColor locs lights
 
   let img :: Image VU RGBA Double = Image.fromListsR VU pixels
-  put g'''
+  put g''''
   pure $ Image.writeImage path img
 
 gaussian :: Double -> Double -> Double -> Double

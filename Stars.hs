@@ -132,9 +132,9 @@ luminance center point = do
     g <- get
     let (randVal, newGen) = uniformR (0 :: Double, actualDistance :: Double) g
     put newGen
-    let randomDistance = actualDistance * distanceDampeningCoefficient + randVal
+    let randomDistance = actualDistance + sqrt randVal
     let gaussianLuminance = gaussian gaussianMean gaussianVariance randomDistance
-    let regularizedLuminance = gaussianLuminance / gaussian gaussianMean gaussianVariance 0
+    let regularizedLuminance = (gaussianLuminance / gaussian gaussianMean gaussianVariance 0) / sqrt (avg [randVal, actualDistance])
     pure (point, regularizedLuminance)
 
 -- Borrowed right from https://stackoverflow.com/a/16109302

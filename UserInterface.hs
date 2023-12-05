@@ -1,7 +1,6 @@
 module UserInterface where
 
 import System.IO
-import Text.ParserCombinators.ReadP
 import GHC.Data.Maybe
 import Data.Char
 import Data.List.Split

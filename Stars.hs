@@ -1,9 +1,11 @@
 module Stars where
 
 import State
+import System.Environment
 import System.Random
 import Data.List
 import Data.Ord
+import Data.Char
 import GHC.Data.Maybe
 import qualified Data.Map as Map
 import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
@@ -45,9 +47,6 @@ chooseCenters (newPoint:as) density centers = do
       chooseCenters as density (newPoint : centers)
     else
       chooseCenters as density centers
-
-black = Image.PixelY 0.0
-white = Image.PixelY 1.0
 
 getPixels :: Color -> [Point] -> [(Point, Image.Pixel RGBA Double)] -> [(Point, Pixel RGBA Double)]
 getPixels bgColor locs lights =
@@ -218,7 +217,11 @@ colorToPixel (r1, g1, b1, _) = PixelRGBA r1 g1 b1
 
 main :: IO ()
 main = do
-  stdGen <- initStdGen
+  args <- getArgs
+  stdGen <- if length args == 2 && head args == "--seed" && all isDigit (last args) then do
+    pure $ mkStdGen $ read $ last args
+    else do initStdGen
+
   out <- runMaybeT getParameters
   case out of
     Nothing -> putStrLn "Invalid argument. Please try again."

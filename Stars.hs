@@ -95,11 +95,13 @@ weightedAvg ns =
 avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(c, (a, b))] -> [(c, (a, b))]
 avgDupsByFst = map (\ls -> (fst (head ls), ((fst . snd) (head ls), weightedAvg (map (snd . snd) ls)))) . groupBy (\(_, (a1, _)) (_, (a2, _)) -> a1 == a2)
 
-randPercent :: Point -> Rand (Point, Double)
-randPercent c@(x, y) = do
-  let perlinNoise = perlin 1 5 0.05 0.5
-  let perlinRes = noiseValue perlinNoise (fromIntegral x, fromIntegral y, 0) 
-  pure (c, (perlinRes + 1) * 0.5)
+randPercent :: Int -> Point -> (Point, Double)
+randPercent seed (x, y) =
+  let
+    perlinNoise = perlin seed 5 0.05 0.5
+    perlinRes = noiseValue perlinNoise (fromIntegral x, fromIntegral y, 0)
+  in
+    ((x, y), (perlinRes + 1) * 0.5)
 
 buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
 buildImage path locs centers (Specs { width = width
@@ -110,9 +112,10 @@ buildImage path locs centers (Specs { width = width
                                     }) = do
   g <- get
   let (filledAll, g') = runState (mapM (buildNeighborhood width height radRange) centers) g
-  let (centerColors, g'') = runState (mapM randPercent centers) g'
+  let (seed, g'') = uniformR (1, 1000000) g'
+  let centerColors = map (randPercent seed) centers
   let filled = zip centerColors filledAll
-  let (lums, g''') = runState (mapM (\((center, col), lp) ->  mapM (luminance center) lp) filled) g'
+  let (lums, g''') = runState (mapM (\((center, col), lp) ->  mapM (luminance center) lp) filled) g''
   put g'''
 
   let lums' = map (filter (\(_, lum) -> lum > 0.01)) lums

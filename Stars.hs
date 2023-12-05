@@ -12,7 +12,6 @@ import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
 import MonadicShuffle (Rand)
 import UserInterface
-import UserInterface (getResolution)
 type Point = (Int, Int)
 
 -- Taken directly from source at 
@@ -101,10 +100,15 @@ avgDupsByFst = map (\ls -> (fst (head ls), weightedAvg (map snd ls))) . groupBy 
 headDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
 headDupsByFst = map (\ls -> (fst (head ls), head (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
-buildImage :: FilePath -> Int -> Int  -> [Point] -> [Point] -> Rand (IO ())
-buildImage path width height locs centers = do
+buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
+buildImage path locs centers (Specs { width = width
+                                    , height = height
+                                    , starSizeRange = radRange
+                                    -- , bgColor = bgColor
+                                    -- , starColors = (c1, c2)
+                                    }) = do
   g <- get
-  let (filledAll, g') = runState (mapM (buildNeighborhood width height (lowerRadiusBound, upperRadiusBound)) centers) g
+  let (filledAll, g') = runState (mapM (buildNeighborhood width height radRange) centers) g
   let filled = zip centers filledAll
 
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
@@ -183,24 +187,13 @@ gaussianMean = 0
 gaussianVariance = 800
 distanceDampeningCoefficient = 2
 
-imgWidth = 2560
-imgHeight = 1600
-
--- imgWidth = 500
--- imgHeight = 500
-
-lowerRadiusBound = 5
-upperRadiusBound = 20
-
-
 main :: IO ()
 main = do
   stdGen <- initStdGen
   out <- runMaybeT getParameters
   case out of 
     Nothing -> putStrLn "Invalid argument. Please try again."
-    Just specs -> print specs
-
-  -- let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  -- let centers = evalState (chooseCenters locs 0.0004 []) stdGen
-  -- evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen
+    Just specs@(Specs { width = imgWidth, height = imgHeight}) -> do
+      let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
+      let centers = evalState (chooseCenters locs 0.0004 []) stdGen
+      evalState (buildImage "test-1.png" locs centers specs) stdGen

@@ -91,14 +91,8 @@ weightedAvg ns =
   in
     sum (zipWith (*) (sort ns) (map fromIntegral enum)) / toN
 
-sumDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
-sumDupsByFst = map (\ls -> (fst (head ls), sum (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
-
 avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(a, b)] -> [(a, b)]
 avgDupsByFst = map (\ls -> (fst (head ls), weightedAvg (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
-
-headDupsByFst :: (Ord a, Ord b, Num b) => [(a, b)] -> [(a, b)]
-headDupsByFst = map (\ls -> (fst (head ls), head (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
 
 buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
 buildImage path locs centers (Specs { width = width

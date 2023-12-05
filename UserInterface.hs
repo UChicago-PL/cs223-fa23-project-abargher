@@ -14,6 +14,7 @@ data Specs = Specs { width :: Int
                    , starSizeRange :: (Int, Int)
                    , starColors :: (Color, Color)
                    , bgColor :: Color
+                   , fileName :: FilePath
                    }
   deriving Show
 
@@ -55,11 +56,19 @@ getColor = do
   let [r, g, b] = cols
   pure (r, g, b, 1.0)
 
+getFname :: MaybeT IO FilePath
+getFname = do
+  line <- liftMaybeT getLine
+  guard (not $ null line)
+  pure line
+
 prompt :: String -> MaybeT IO ()
 prompt str = liftMaybeT $ do {putStr str; hFlush stdout} 
 
 getParameters :: MaybeT IO Specs
 getParameters = do
+  prompt "enter destination filename to write image: "
+  fname <- getFname
   prompt resolutionOptions
   (w, h) <- getResolution
   prompt "Minimum star radius (in pixels)? "
@@ -77,5 +86,6 @@ getParameters = do
                , starSizeRange = (minRad, maxRad)
                , starColors = (starCol1, starCol2)
                , bgColor = bgCol
+               , fileName = fname
                }
 

@@ -123,11 +123,6 @@ buildImage path locs centers (Specs { width = width
   let pixelsWithCol = concatMap (\(c, lp) -> map (c,) lp) lumsAndCol  -- [color, (position, lum)]
   let preLights = avgDupsByFst $ sortBy starSorter pixelsWithCol
   let lights = map (\(perc, (center, lum)) -> (center, blend (colorToPixel bgColor 1)  (colorToPixel (gradient c1 c2 perc) lum))) preLights
-
-  -- let (colPercent, g'''') = uniformR (0 :: Double, 1 :: Double) g'''
-  -- let fgColor = colorToPixel $ gradient c1 c2 colPercent
-
-  -- let lights = map ((blend (colorToPixel bgColor 1) . fgColor . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ pixelsWithCol
   let pixels = splitEvery width $ map snd $ getPixels bgColor locs lights
 
   let img :: Image VU RGBA Double = Image.fromListsR VU pixels
@@ -227,7 +222,7 @@ main = do
   out <- runMaybeT getParameters
   case out of
     Nothing -> putStrLn "Invalid argument. Please try again."
-    Just specs@(Specs { width = imgWidth, height = imgHeight}) -> do
+    Just specs@(Specs { width = imgWidth, height = imgHeight, fileName = fname}) -> do
       let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
       let centers = evalState (chooseCenters locs 0.0004 []) stdGen
-      evalState (buildImage "test-1.png" locs centers specs) stdGen
+      evalState (buildImage fname locs centers specs) stdGen

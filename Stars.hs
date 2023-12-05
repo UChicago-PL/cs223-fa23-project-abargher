@@ -187,13 +187,12 @@ gaussianMean = 0
 gaussianVariance = 800
 distanceDampeningCoefficient = 2
 
-combine :: Num a => a -> a -> a -> a
-combine fg bg alpha = alpha * fg + (1-alpha) * bg
-
 blend :: Color -> Color -> Color
 -- First Color is background, second is foreground
 blend (r1, g1, b1, a1) (r2, g2, b2, _) =
-  (combine r1 r2 a1, combine g1 g2 a1, combine b1 b2 a1, 1)
+  (combine r1 r2 a1, combine g1 g2 a1, combine b1 b2 a1, 1) where
+    combine :: Num a => a -> a -> a -> a
+    combine fg bg alpha = alpha * fg + (1-alpha) * bg
 
 gradient :: Color -> Color -> Double -> Color
 gradient (r1, g1, b1, a1) (r2, g2, b2, _) percent = 

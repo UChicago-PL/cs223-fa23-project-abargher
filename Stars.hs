@@ -197,6 +197,10 @@ gradient (r1, g1, b1, a1) (r2, g2, b2, _) percent =
   in
     (r1 + rDiffPct, g1 + gDiffPct, b1 + bDiffPct, 1)
 
+
+colorToPixel :: Color -> Pixel RGBA Double
+colorToPixel (r1, g1, b1, alpha) = PixelRGBA r1 g1 b1 alpha
+
 main :: IO ()
 main = do
   stdGen <- initStdGen

@@ -23,7 +23,7 @@ getResolution :: MaybeT IO (Int, Int)
 getResolution = do
   line' <- liftMaybeT getLine
   let line = filter (not . isSpace) line'
-  guard (all isDigit line)
+  guard (not (null line) && all isDigit line)
   let choice = read line :: Int
   guard (choice > 0 && choice <= 11)
   if choice == 11 then do

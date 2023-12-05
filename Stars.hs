@@ -197,8 +197,10 @@ main :: IO ()
 main = do
   stdGen <- initStdGen
   out <- runMaybeT getParameters
-  print out
+  case out of 
+    Nothing -> putStrLn "Invalid argument. Please try again."
+    Just specs -> print specs
 
-  let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-  let centers = evalState (chooseCenters locs 0.0004 []) stdGen
-  evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen
+  -- let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
+  -- let centers = evalState (chooseCenters locs 0.0004 []) stdGen
+  -- evalState (buildImage "test-1.png" imgWidth imgHeight locs centers) stdGen

@@ -76,8 +76,8 @@ imgToCartesians width height imgPoints =
   filter (\(x,y) -> (x >= -width `div` 2) && (x <= -width `div` 2) && (y >= -height `div` 2) && (y <= height `div` 2))
   (map (imgToCartesian width height) imgPoints)
 
-starSorter :: (Point, Double) -> (Point, Double) -> Ordering
-starSorter (p1, lum1) (p2, lum2) = compare (p1, Down lum1) (p2, Down lum2)
+starSorter :: (Double, (Point, Double)) -> (Double, (Point, Double)) -> Ordering
+starSorter (_, (p1, lum1)) (_, (p2, lum2)) = compare (p1, Down lum1) (p2, Down lum2)
 
 avg :: Fractional a => [a] -> a
 avg ns = sum ns / fromIntegral (length ns)
@@ -91,8 +91,8 @@ weightedAvg ns =
   in
     sum (zipWith (*) (sort ns) (map fromIntegral enum)) / toN
 
-avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(a, b)] -> [(a, b)]
-avgDupsByFst = map (\ls -> (fst (head ls), weightedAvg (map snd ls))) . groupBy (\(a, _) (b, _) -> a == b)
+avgDupsByFst :: (Ord a, Ord b, Fractional b) => [(c, (a, b))] -> [(c, (a, b))]
+avgDupsByFst = map (\ls -> (fst (head ls), ((fst . snd) (head ls), weightedAvg (map (snd . snd) ls)))) . groupBy (\(_, (a1, _)) (_, (a2, _)) -> a1 == a2)
 
 randPercent :: Point -> Rand (Point, Double)
 randPercent c = do
@@ -113,17 +113,21 @@ buildImage path locs centers (Specs { width = width
   let (centerColors, g'') = runState (mapM randPercent centers) g'
   let filled = zip centerColors filledAll
   let (lums, g''') = runState (mapM (\((center, col), lp) ->  mapM (luminance center) lp) filled) g'
+  put g'''
+
   let lums' = map (filter (\(_, lum) -> lum > 0.01)) lums
   let lumsAndCol = zip (map snd centerColors) lums'
+  let pixelsWithCol = concatMap (\(c, lp) -> map (c,) lp) lumsAndCol  -- [color, (position, lum)]
+  let preLights = avgDupsByFst $ sortBy starSorter pixelsWithCol
+  let lights = map (\(perc, (center, lum)) -> (center, blend (colorToPixel bgColor 1)  (colorToPixel (gradient c1 c2 perc) lum))) preLights
 
-  let (colPercent, g'''') = uniformR (0 :: Double, 1 :: Double) g'''
-  let fgColor = colorToPixel $ gradient c1 c2 colPercent
+  -- let (colPercent, g'''') = uniformR (0 :: Double, 1 :: Double) g'''
+  -- let fgColor = colorToPixel $ gradient c1 c2 colPercent
 
-  let lights = map ((blend (colorToPixel bgColor 1) . fgColor . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums'
+  -- let lights = map ((blend (colorToPixel bgColor 1) . fgColor . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ pixelsWithCol
   let pixels = splitEvery width $ map snd $ getPixels bgColor locs lights
 
   let img :: Image VU RGBA Double = Image.fromListsR VU pixels
-  put g''''
   pure $ Image.writeImage path img
 
 gaussian :: Double -> Double -> Double -> Double

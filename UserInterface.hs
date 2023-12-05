@@ -50,7 +50,7 @@ getColor = do
   line <- liftMaybeT getLine
   let line' = splitOn "," $ filter (not . isSpace) line
   guard (length line' == 3 && all (all isDigit) line')
-  let cols = map read line'
+  let cols = map ((/ 255) . read) line'
   guard (all (\n -> n >= 0 && n <= 255) cols)
   let [r, g, b] = cols
   pure (r, g, b, 1.0)

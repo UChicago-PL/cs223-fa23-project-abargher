@@ -184,7 +184,7 @@ buildNeighborhood width height radRange p = do
   pure imgPts
 
 gaussianMean = 0
-gaussianVariance = 800
+gaussianVariance = 100
 distanceDampeningCoefficient = 2
 
 blend :: Color -> Color -> Color

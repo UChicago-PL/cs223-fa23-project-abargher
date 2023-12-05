@@ -22,19 +22,22 @@ getResolution :: MaybeT IO (Int, Int)
 getResolution = do
   line' <- liftMaybeT getLine
   let line = filter (not . isSpace) line'
-  guard (not (null line) && all isDigit line)
-  let choice = read line :: Int
-  guard (choice > 0 && choice <= 11)
-  if choice == 11 then do
-    prompt "Custom resolution (e.g. 1200x1200)? "
-    custom <- liftMaybeT getLine
-    let custom' = splitOn "x" $ filter (not . isSpace) custom
-    guard (length custom' == 2)
-    let width = read $ head custom'
-    let height = read $ last custom'
-    pure (width, height)
-  else do
-    pure $ resolutionMap !! choice
+  if null line then
+    pure $ resolutionMap !! 3
+  else do 
+    guard (all isDigit line)
+    let choice = read line :: Int
+    guard (choice > 0 && choice <= 11)
+    if choice == 11 then do
+      prompt "Custom resolution (e.g. 1200x1200)? "
+      custom <- liftMaybeT getLine
+      let custom' = splitOn "x" $ filter (not . isSpace) custom
+      guard (length custom' == 2)
+      let width = read $ head custom'
+      let height = read $ last custom'
+      pure (width, height)
+    else do
+      pure $ resolutionMap !! choice
 
 getRadius :: MaybeT IO Int
 getRadius = do

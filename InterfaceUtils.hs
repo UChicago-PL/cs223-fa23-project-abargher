@@ -30,5 +30,5 @@ resolutionOptions =
   \  10) 5120x3200 (16:10)\n\
   \  11) custom resolution\n\
   \\n\
-  \Type a number (1-11): \
+  \Type a number (1-11), or blank for default value (3): \
   \"

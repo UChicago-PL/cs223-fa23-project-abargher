@@ -10,11 +10,11 @@ import           Graphics.Image (Image, Pixel(..), RGB, VU(VU))
 import           Graphics.Image.ColorSpace
 import           Graphics.Image.Interface (MArray)
 import qualified Graphics.Image as Image
-import MonadicShuffle (Rand)
 import UserInterface
 import Numeric.Noise.Perlin
 
 type Point = (Int, Int)
+type Rand a = State StdGen a
 
 -- Taken directly from source at
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery

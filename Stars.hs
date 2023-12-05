@@ -187,8 +187,8 @@ distanceDampeningCoefficient = 2
 
 blend :: Image.Pixel RGBA Double -> Image.Pixel RGBA Double -> Image.Pixel RGBA Double
 -- First Color is background, second is foreground
-blend (Image.PixelRGBA r1 g1 b1 a1) (Image.PixelRGBA r2 g2 b2 a2) =
-  colorToPixel (combine r1 r2 a1, combine g1 g2 a1, combine b1 b2 a1, 1) a2 where
+blend (Image.PixelRGBA r1 g1 b1 _) (Image.PixelRGBA r2 g2 b2 a2) =
+  colorToPixel (combine r1 r2 a2, combine g1 g2 a2, combine b1 b2 a2, 1) 1 where
     combine :: Num a => a -> a -> a -> a
     combine bg fg alpha = alpha * fg + (1-alpha) * bg
 

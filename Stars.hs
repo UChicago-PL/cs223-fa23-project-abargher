@@ -16,7 +16,7 @@ import Numeric.Noise.Perlin
 
 type Point = (Int, Int)
 
--- Taken directly from source at 
+-- Taken directly from source at
 -- https://hackage.haskell.org/package/list-grouping-0.1.1/docs/Data-List-Grouping.html#v%3asplitEvery
 -- source code: https://hackage.haskell.org/package/list-grouping-0.1.1/docs/src/Data-List-Grouping.html#splitEvery
 -- Only needed this function, not worth installing a whole additional package.
@@ -122,7 +122,7 @@ buildImage path locs centers (Specs { width = width
   let lumsAndCol = zip (map snd centerColors) lums'
   let pixelsWithCol = concatMap (\(c, lp) -> map (c,) lp) lumsAndCol  -- [color, (position, lum)]
   let preLights = avgDupsByFst $ sortBy starSorter pixelsWithCol
-  let lights = map (\(perc, (center, lum)) -> (center, blend (colorToPixel bgColor 1)  (colorToPixel (gradient c1 c2 perc) lum))) preLights
+  let lights = map (\(perc, (center, lum)) -> (center, blend (colorToPixel bgColor 1) (colorToPixel (gradient c1 c2 perc) lum))) preLights
   let pixels = splitEvery width $ map snd $ getPixels bgColor locs lights
 
   let img :: Image VU RGBA Double = Image.fromListsR VU pixels

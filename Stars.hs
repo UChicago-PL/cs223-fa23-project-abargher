@@ -47,10 +47,10 @@ chooseCenters (newPoint:as) density centers = do
 black = Image.PixelY 0.0
 white = Image.PixelY 1.0
 
-getPixels :: [Point] -> [(Point, Image.Pixel Y Double)] -> [(Point, Pixel Y Double)]
-getPixels locs lights =
+getPixels :: Color -> [Point] -> [(Point, Image.Pixel RGBA Double)] -> [(Point, Pixel RGBA Double)]
+getPixels bgColor locs lights =
   let
-    background = Map.fromAscList $ map (, black) locs
+    background = Map.fromAscList $ map (, colorToPixel bgColor 1.0) locs
     lights' = Map.fromAscList lights
   in
     Map.toAscList $ Map.unionWith const lights' background
@@ -83,9 +83,9 @@ avg :: Fractional a => [a] -> a
 avg ns = sum ns / fromIntegral (length ns)
 
 weightedAvg :: (Ord a, Fractional a) => [a] -> a
-weightedAvg ns = 
-  let 
-    listLength = length ns 
+weightedAvg ns =
+  let
+    listLength = length ns
     enum = [1..] :: [Int]
     toN = (fromIntegral listLength * (fromIntegral listLength + 1) / 2)
   in
@@ -98,19 +98,23 @@ buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
 buildImage path locs centers (Specs { width = width
                                     , height = height
                                     , starSizeRange = radRange
-                                    -- , bgColor = bgColor
-                                    -- , starColors = (c1, c2)
+                                    , bgColor = bgColor
+                                    , starColors = (c1, c2)
                                     }) = do
   g <- get
   let (filledAll, g') = runState (mapM (buildNeighborhood width height radRange) centers) g
   let filled = zip centers filledAll
-
   let (lums, g'') = runState (mapM (\(center, lp) -> mapM (luminance center) lp) filled) g'
   let lums' = map (filter (\(_, lum) -> lum > 0.01)) lums
-  let lights = map ((Image.PixelY . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums'
-  let pixels = splitEvery width $ map snd $ getPixels locs lights
 
-  let img :: Image VU Y Double = Image.fromListsR VU pixels
+  let (colPercent, g''') = uniformR (0 :: Double, 1 :: Double) g''
+  let fgColor = colorToPixel $ gradient c1 c2 colPercent
+
+  let lights = map ((blend (colorToPixel bgColor 1) . fgColor . min 1.0) <$>) $ avgDupsByFst $ sortBy starSorter $ concat lums'
+  let pixels = splitEvery width $ map snd $ getPixels bgColor locs lights
+
+  let img :: Image VU RGBA Double = Image.fromListsR VU pixels
+  put g'''
   pure $ Image.writeImage path img
 
 gaussian :: Double -> Double -> Double -> Double
@@ -181,15 +185,15 @@ gaussianMean = 0
 gaussianVariance = 100
 distanceDampeningCoefficient = 2
 
-blend :: Color -> Color -> Color
+blend :: Image.Pixel RGBA Double -> Image.Pixel RGBA Double -> Image.Pixel RGBA Double
 -- First Color is background, second is foreground
-blend (r1, g1, b1, a1) (r2, g2, b2, _) =
-  (combine r1 r2 a1, combine g1 g2 a1, combine b1 b2 a1, 1) where
+blend (Image.PixelRGBA r1 g1 b1 a1) (Image.PixelRGBA r2 g2 b2 a2) =
+  colorToPixel (combine r1 r2 a1, combine g1 g2 a1, combine b1 b2 a1, 1) a2 where
     combine :: Num a => a -> a -> a -> a
-    combine fg bg alpha = alpha * fg + (1-alpha) * bg
+    combine bg fg alpha = alpha * fg + (1-alpha) * bg
 
 gradient :: Color -> Color -> Double -> Color
-gradient (r1, g1, b1, a1) (r2, g2, b2, _) percent = 
+gradient (r1, g1, b1, _) (r2, g2, b2, _) percent =
   let
     rDiffPct = (r2 - r1) * percent
     gDiffPct = (g2 - g1) * percent
@@ -198,14 +202,14 @@ gradient (r1, g1, b1, a1) (r2, g2, b2, _) percent =
     (r1 + rDiffPct, g1 + gDiffPct, b1 + bDiffPct, 1)
 
 
-colorToPixel :: Color -> Pixel RGBA Double
-colorToPixel (r1, g1, b1, alpha) = PixelRGBA r1 g1 b1 alpha
+colorToPixel :: Color -> Double -> Pixel RGBA Double
+colorToPixel (r1, g1, b1, _) = PixelRGBA r1 g1 b1
 
 main :: IO ()
 main = do
   stdGen <- initStdGen
   out <- runMaybeT getParameters
-  case out of 
+  case out of
     Nothing -> putStrLn "Invalid argument. Please try again."
     Just specs@(Specs { width = imgWidth, height = imgHeight}) -> do
       let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]

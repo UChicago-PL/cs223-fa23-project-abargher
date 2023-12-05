@@ -38,7 +38,7 @@ getResolution = do
       let height = read $ last custom'
       pure (width, height)
     else do
-      pure $ resolutionMap !! choice
+      pure $ resolutionMap !! (choice - 1)
 
 getRadius :: MaybeT IO Int
 getRadius = do

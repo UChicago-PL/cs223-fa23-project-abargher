@@ -15,6 +15,7 @@ data Specs = Specs { width :: Int
                    , starColors :: (Color, Color)
                    , bgColor :: Color
                    , fileName :: FilePath
+                   , density :: Double
                    }
   deriving Show
 
@@ -62,6 +63,17 @@ getFname = do
   guard (not $ null line)
   pure line
 
+getDensity :: MaybeT IO Double
+getDensity = do
+  line <- liftMaybeT getLine
+  if null line then
+    pure 0.0004
+  else do
+    guard (all isDigit line)
+    let num = read line
+    guard (num > 0 && num <= 10)
+    pure $ num * 0.0001
+
 prompt :: String -> MaybeT IO ()
 prompt str = liftMaybeT $ do {putStr str; hFlush stdout} 
 
@@ -71,6 +83,8 @@ getParameters = do
   fname <- getFname
   prompt resolutionOptions
   (w, h) <- getResolution
+  prompt "Star density? Pick a number 1-10, or blank for default (4): "
+  density <- getDensity
   prompt "Minimum star radius (in pixels)? "
   minRad <- getRadius
   prompt "Maximum star radius (in pixels)? "
@@ -87,5 +101,6 @@ getParameters = do
                , starColors = (starCol1, starCol2)
                , bgColor = bgCol
                , fileName = fname
+               , density = density
                }
 

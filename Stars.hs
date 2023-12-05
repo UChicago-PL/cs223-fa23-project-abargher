@@ -222,7 +222,11 @@ main = do
   out <- runMaybeT getParameters
   case out of
     Nothing -> putStrLn "Invalid argument. Please try again."
-    Just specs@(Specs { width = imgWidth, height = imgHeight, fileName = fname}) -> do
+    Just specs@(Specs { width = imgWidth
+                      , height = imgHeight
+                      , fileName = fname
+                      , density = density
+                      }) -> do
       let locs = [(i, j) | i <- [0..imgHeight-1], j <- [0..imgWidth-1]]
-      let centers = evalState (chooseCenters locs 0.0004 []) stdGen
+      let centers = evalState (chooseCenters locs density []) stdGen
       evalState (buildImage fname locs centers specs) stdGen

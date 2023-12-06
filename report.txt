@@ -1,0 +1,2 @@
+The Stars of Chance is a program for procedurally/randomly generating images
+resembling a starry space background.

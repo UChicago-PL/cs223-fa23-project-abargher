@@ -102,11 +102,21 @@ randPercent seed (x, y) =
   in
     ((x, y), (perlinRes + 1) * 0.5)
 
+-- Constructs and writes image to file from the chosen centers and a list of all
+-- valid image coordinates (locs).
+--
+-- locs is an input to avoid redundant computation.
+-- For each center, generates the circle around that center (filledAll)
+-- Then chooses a 'color' percentage for each center with Perlin noise
+--    (percentage is along the scale from star color c1 to c2)
+-- Deals with overlapping star pixels with a weighted average of the 'luminance'
+-- Finally, blends all of the transparent star pixels with the background color
+--   and unions those locations with the non-specified ones, which are the BG.
 buildImage :: FilePath -> [Point] -> [Point] -> Specs -> Rand (IO ())
 buildImage path locs centers (Specs { width = width
                                     , height = height
                                     , starSizeRange = radRange
-                                    , bgColor = bgColor
+                                    , bgColor = bg
                                     , starColors = (c1, c2)
                                     }) = do
   g <- get
@@ -121,8 +131,11 @@ buildImage path locs centers (Specs { width = width
   let lumsAndCol = zip (map snd centerColors) lums'
   let pixelsWithCol = concatMap (\(c, lp) -> map (c,) lp) lumsAndCol  -- [color, (position, lum)]
   let preLights = avgDupsByFst $ sortBy starSorter pixelsWithCol
-  let lights = map (\(perc, (center, lum)) -> (center, blend (colorToPixel bgColor 1) (colorToPixel (gradient c1 c2 perc) lum))) preLights
-  let pixels = splitEvery width $ map snd $ getPixels bgColor locs lights
+  let lights = map (\(p, (ctr, lum)) -> (ctr,
+                                         blend (colorToPixel bg 1)
+                                          (colorToPixel (gradient c1 c2 p) lum)))
+                                        preLights
+  let pixels = splitEvery width $ map snd $ getPixels bg locs lights
 
   let img :: Image VU RGBA Double = Image.fromListsR VU pixels
   pure $ Image.writeImage path img

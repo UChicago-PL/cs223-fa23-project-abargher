@@ -39,7 +39,7 @@ evalState :: State s a -> s -> a        -- run and return final value
 execState :: State s a -> s -> s        -- run and return final state
 
 get            = State $ \s -> (s, s)
-put s'         = State $ \s -> ((), s')
+put s'         = State $ const ((), s')
 modify f       = State $ \s -> ((), f s)
 evalState sa s = fst $ runState sa s
 execState sa s = snd $ runState sa s

@@ -77,6 +77,7 @@ getDensity = do
 prompt :: String -> MaybeT IO ()
 prompt str = liftMaybeT $ do {putStr str; hFlush stdout} 
 
+-- Ask for all parameters and returns a Specs package of the provided arguments.
 getParameters :: MaybeT IO Specs
 getParameters = do
   prompt "enter destination filename to write image: "

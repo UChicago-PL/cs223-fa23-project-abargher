@@ -8,8 +8,6 @@ The Stars of Chance by Alec Bargher & Victor Brown
 
 **Is there a webpage or repository you would like to be linked?**
 
-TODO
+https://github.com/UChicago-PL/cs223-fa23-project-abargher/
 
 **Any other relevant information or notes?**
-
-TODO

@@ -48,6 +48,8 @@ chooseCenters (newPoint:as) density centers = do
     else
       chooseCenters as density centers
 
+-- Unions all 'lights' pixels with background locations, producing a map
+-- with keys at every pixel location in the image
 getPixels :: Color -> [Point] -> [(Point, Image.Pixel RGBA Double)] -> [(Point, Pixel RGBA Double)]
 getPixels bgColor locs lights =
   let
@@ -155,15 +157,14 @@ luminance center point = do
     put newGen
     let randomDistance = 0.9 * actualDistance + sqrt randVal
     let gaussianLuminance = gaussian gaussianMean gaussianVariance randomDistance
-    let regularizedLuminance = (gaussianLuminance / gaussian gaussianMean gaussianVariance 0) / sqrt (avg [randVal, actualDistance])
+    let regularizedLuminance = (gaussianLuminance /
+                                gaussian gaussianMean gaussianVariance 0) /
+                               sqrt (avg [randVal, actualDistance])
     pure (point, regularizedLuminance)
 
 -- Borrowed right from https://stackoverflow.com/a/16109302
 rmdups :: (Ord a) => [a] -> [a]
 rmdups = map head . group . sort
-
-rmdupsBy :: (Ord a) => (a -> a -> Bool) -> [a] -> [a]
-rmdupsBy comp = map head . groupBy comp . sort
 
 mirroredPoints :: Point -> [Point]
 mirroredPoints (y, x) =
@@ -181,6 +182,8 @@ tupleAdd :: Num a => (a, a) -> (a, a) -> (a, a)
 tupleAdd (a, b) (x, y) = (a + x, b + y)
 
 -- Using the midpoint circle algorithm to generate a "circle" in the grid
+-- WARNING: Points generated here are in the standard cartesian grid. Must be
+-- converted before using as image pixel coordinates.
 generateCircle :: Point -> Int -> [Point]
 generateCircle center radius =
   map (tupleAdd center) $ rmdups $ generateCircle' radius 0 (1 - radius)
@@ -208,6 +211,8 @@ gaussianMean = 0
 gaussianVariance = 100
 distanceDampeningCoefficient = 2
 
+-- Meld an optionally translucent (i.e., alpha < 1.0) foreground color with a
+-- background color, which is assumed to be solid.
 blend :: Image.Pixel RGBA Double -> Image.Pixel RGBA Double -> Image.Pixel RGBA Double
 -- First Color is background, second is foreground
 blend (Image.PixelRGBA r1 g1 b1 _) (Image.PixelRGBA r2 g2 b2 a2) =
@@ -231,7 +236,9 @@ colorToPixel (r1, g1, b1, _) = PixelRGBA r1 g1 b1
 main :: IO ()
 main = do
   args <- getArgs
-  stdGen <- if length args == 2 && head args == "--seed" && all isDigit (last args) then do
+  stdGen <- if length args == 2 &&
+               head args == "--seed" &&
+               all isDigit (last args) then do
     pure $ mkStdGen $ read $ last args
     else do initStdGen
 

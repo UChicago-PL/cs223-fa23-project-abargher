@@ -21,3 +21,51 @@ affect anything about the procedural image generation. Therefore, two images
 generated with the same seed and same arguments, but different star colors will
 look the "same", except for the specific colors of each star. The 'shade' of
 each star will match, as will the position, size, shape, etc.
+
+The whole premise of this program and its intended outputs is to generate randomness
+in such a way that no two generations of different seeds are identical. In order to
+accomplish this, there were 4 crucial components that we would randomly generate.
+
+These were
+
+1. A list of star centers
+
+To generate star centers, we iterated through every single (i,j) pairing in the image,
+and each time generated a random number from 0,1. If this number was less than or equal
+to our given density, we would add that to our star centers, and if it was larger
+than the density it would move to the next point. The law of big numbers states that
+this "threshold decision making" would give us a list of star centers such that
+the length of that list as a fraction of the total pixel lists would be roughly equal
+to the density.
+
+2. The corresponding star colors (as a gradient between two colors)
+
+After generating star centers, for every center we would generate a specific color for
+that star and the outlying pixels. This was done by generating a random float `percent`
+[0.0..1.0] that would tell us how far along the two color gradients this star color 
+would be on. In order to "blend" these colors given two RGB color (R1,G1,B1) and 
+(R2,G2,B2)
+
+we utilized the following formula.
+
+(R',G',B') = (R1 + (R2-R1) * percent),
+             (G1 + (G2-G1) * percent),
+             (B1 + (B2-B1) * percent),
+
+to average the two colors together.
+
+
+3. The corresponding star radii (within the given range)
+
+This was a random integer in between the provided minimum and maximum range. This
+allowed us to create a pseudo-circle (can't be an actual circle because it is pixels)
+of different sizes per star
+
+4. The alpha/luminance of each pixel
+
+In order to determine the luminance/alpha of each pixel in the surrounding neighborhood, 
+we utilized a gaussian distribution, along with some random noise to ensure that each star looked
+different. In order to ensure that the drop off from the gaussian distribution was not too fast,
+we divided by the square root of the average of the random noise (which was from [0,distance]) and
+found that we were able to generate random luminances. We then blended the foreground and background
+color using the equation Color' = fg * alpha + (1-alpha) * bg to get a good blend of images.

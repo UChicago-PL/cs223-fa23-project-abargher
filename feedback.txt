@@ -1,0 +1,2 @@
+===== Project Feedback =====
+Nice job! It looks like you implemented most of the tasks outlined in your proposal, and had some interesting explorations with random numbers, distributions, and graphics. Your presentation seemed well practiced, although it was a little rushed. Overall, great job!

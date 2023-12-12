@@ -1,0 +1,67 @@
+Stars of Chance
+
+by Alec Bargher & Victor Brown
+-----------
+
+TLDR: We are going to take up Professor Chugh's suggestion of making our project
+based off of Interstellar. To do this, we are going to use random functions and
+distance parameters to draw a galaxy-like image with randomly generated stars
+of varying density.
+
+Topics relevant to the course include:
+- Image Generation
+- Recursion
+- Colorful Image / Text
+- Command Line Arguments / other user input
+- Lists and their functions
+
+Easy goals:
+- Assign colors randomly
+- Generating a basic image
+- allow user input for image parameters
+
+Medium goals:
+- randomly pick star "center" points
+
+Challenge goals:
+- Density function(s) for star proximity and for pixels comprising a single star
+- assign random "brightness" value (star size)
+  - to give stars a bright center appearance where they are dimmer at edges
+
+==============
+
+Picture this, you've just watched Interstellar and you want to have your Matthew McConaughey style
+adventure. Unfortunately, you've got no spaceship, no money, and no Carhartt Jacket (unless you're
+THE Victor Brown). Fortunately, you do have Haskell, and all of the advantages that Functional Programming
+gives us! Armed with a computer, you set out to draw the image to capture your dreams. Who needs the
+stars to align when you've got... Stars of Chance.
+
+The core of our star generation is picking where the centers of each star lie.
+One method for picking these centers is to choose a fixed number of stars we
+want to generate as well as a fixed minimum distance between all stars. Then,
+we randomly generate an (x,y) position within the bounds of the desired image
+size, and add it to a list of centers. If the randomly chosen position is not
+at least the minimum distance away from all existing centers, we will "reroll"
+and choose a new random position to try. We will also incorporate a limit on
+the number of rerolls to prevent too many (and potentially infinitely many)
+rerolls.
+
+There are two ideas for generating star centers. The first approach involves iterating from every pixel
+in the array from (0,0) -> (row, col) where row is the height of the image and column is the length.
+For each pixel, there is a probability function of this pixel being a star center that can be written
+as below. P(X) = 1/x if forall prev_center, d(prev_center, curr_center) < threshold, and 0 otherwise.
+I am curious to see whether this approach would equally distribute star centers, or favor a certain quadrant
+(my guess would be the top left).
+
+There are many opportunities for modifying the image based on user supplied
+parameters. The density of star centers, the size/brightness of stars, the color
+or kinds of colors, and more. Wherever there is a parameter, we could allow the
+user to input their own values as command line arguments (to start), or if time
+allows, perhaps create a more friendly interface for choosing parameters.
+
+The last part of this project is trying to ensure that we draw stars that actually look like stars.
+To do this, we are going to create a function that allows us to identify the distance of that pixel
+from the center of the star, determine whether or not to draw a pixel, and what brightness/luminance
+to draw these pixels. There will be a certain threshold that we will no longer draw pixels related
+to that star, to ensure there is some contrast between what a star looks like and what the black sky
+looks like.

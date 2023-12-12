@@ -1,0 +1,30 @@
+Our project is coming along well, and the core of the randomness is working.
+We are able to generate quite large images in a reasonable amount of time with
+a random placement of star centers. The star centers can be filled outwards
+to a random radius in a circular pattern (using the midpoint circle algorithm).
+We have a function that generates a randomly offset luminance value that decays
+as pixels get further from the center using a gaussian distribution.
+
+We are still working on debugging the placement of coordinates after the star
+circle generation; the circle generation function uses a different coordinate
+system (standard cartesian coordinates) than the image coordinates.
+
+We plan on adding colors and possibly incorporating Perlin Noise to add some
+variety to the image generation. Lastly, we plan to make a terminal-based
+interface for generating the image given some parameters from the user.
+
+Our main problem currently is ensuring our stars aren't cut off by the image
+generations. As of right now, our stars are only being generated in  about the top
+1/8th of the image, and we want to try and identify the problem to ensure the stars
+are generated throughout. Currently we can see stars that are of varying sizes but 
+uniform luminance, and using the `luminance` function I have defined, we are
+going to try to find the best way to identify the luminance of a pixel as a function
+of the distance from the star. As a Data Science major, I instantly thought of doing
+some kind of gaussian distribution, with additional random noise to vary the luminance
+of the stars but have it reflect a general pattern of the star being brightest in the
+middle and less bright as it goes outward.
+
+Overall, we are very happy with our project, and we are encouraged by the varying
+ways we've been able to use functional programming (specifically with States and random
+variables.) I am very excited to see how this finishes up! (We might have a little
+surprise in the works!)

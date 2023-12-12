@@ -1,0 +1,11 @@
+cabal-version:      2.4
+name:               stars
+version:            0.1.0.0
+
+executable stars
+  hs-source-dirs:   .
+  main-is:          Stars.hs
+  ghc-options:      -main-is Stars
+  other-modules:    State, UserInterface, InterfaceUtils
+  build-depends:    base, containers, random, hip, ghc, split, hsnoise
+  default-language: GHC2021
